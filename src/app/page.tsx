@@ -2,6 +2,7 @@ import { Hero } from "@/components/hero";
 import { AboutSection } from "@/components/sections/about";
 import { TimelineSection } from "@/components/sections/timeline";
 import { ProjectsSection } from "@/components/sections/projects";
+import { DataVizSection } from "@/components/sections/data-viz";
 import { SkillsSection } from "@/components/sections/skills";
 import { InsightsSection } from "@/components/sections/insights";
 import { ContactSection } from "@/components/sections/contact";
@@ -13,6 +14,7 @@ export default function Home() {
       <AboutSection />
       <TimelineSection />
       <ProjectsSection />
+      <DataVizSection />
       <SkillsSection />
       <InsightsSection />
       <ContactSection />

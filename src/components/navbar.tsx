@@ -4,10 +4,13 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { Command } from "lucide-react";
+import { UnderlineLink } from "@/components/ui/underline-link";
 
 const sections = [
   { id: "about", label: "About" },
   { id: "projects", label: "Projects" },
+  { id: "dataviz", label: "Data Viz" },
   { id: "skills", label: "Skills" },
   { id: "contact", label: "Contact" },
 ];
@@ -34,25 +37,33 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <nav className="container mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-        <Link href="#" className="font-semibold">
+        <Link href="/" className="font-semibold">
           Duy Bùi
         </Link>
         <div className="flex items-center gap-6">
           <ul className="hidden gap-4 sm:flex">
             {sections.map((s) => (
               <li key={s.id}>
-                <a
-                  href={`#${s.id}`}
+                <UnderlineLink
+                  href={`/#${s.id}`}
                   className={cn(
-                    "text-sm text-muted-foreground hover:text-foreground transition-colors",
+                    "group",
                     active === s.id && "text-foreground"
                   )}
                 >
                   {s.label}
-                </a>
+                </UnderlineLink>
               </li>
             ))}
           </ul>
+          <button
+            onClick={() => window.dispatchEvent(new Event("open-cmdk"))}
+            className="inline-flex items-center gap-2 rounded-md border px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
+            aria-label="Open Command Palette"
+          >
+            <Command className="size-3.5" />
+            <span className="hidden sm:inline">Search</span>
+          </button>
           <ThemeToggle />
         </div>
       </nav>

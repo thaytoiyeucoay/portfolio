@@ -52,7 +52,7 @@ export function InsightsSection() {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {posts.map((p, i) => {
-          const href = p.url ?? `#insights-${p.slug}`;
+          const href = p.url ?? `/insights/${p.slug}`;
           const jsonUrl = origin ? `${origin}${href.startsWith("#") ? "/" + href : href}` : href;
           return (
             <motion.article

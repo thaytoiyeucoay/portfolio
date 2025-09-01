@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { projects as allProjects } from "@/data/projects";
+import { Card3D } from "@/components/ui/card-3d";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
@@ -31,7 +32,7 @@ export function ProjectsSection() {
         Projects
       </motion.h2>
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="w-full">
+      <Tabs value={tab} onValueChange={(v: string) => setTab(v as any)} className="w-full">
         <TabsList className="mb-6">
           {categories.map((c) => (
             <TabsTrigger key={c} value={c}>
@@ -46,55 +47,55 @@ export function ProjectsSection() {
                 {(c === "All" ? allProjects : allProjects.filter((p) => p.category === c)).map((p) => (
                   <motion.div
                     key={p.title}
-                    className="group [transform-style:preserve-3d]"
-                    whileHover={{ y: -4, rotateX: 2, rotateY: -2 }}
-                    transition={{ type: "spring", stiffness: 250, damping: 20 }}
+                    className="group"
                     layout
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.98 }}
+                    initial={{ opacity: 0, scale: 0.98, y: 4 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.98, y: 4 }}
                   >
-                    <Card className="relative h-full overflow-hidden bg-background/60 backdrop-blur-xl">
-                      <div className="relative h-40 w-full overflow-hidden">
-                        <Image
-                          src={p.img}
-                          alt={p.title}
-                          fill
-                          className="object-contain p-6 transition-transform duration-300 group-hover:scale-105"
-                        />
-                      </div>
-                      <CardHeader>
-                        <CardTitle className="text-base">{p.title}</CardTitle>
-                        <CardDescription>{p.desc}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex flex-wrap gap-2">
-                          {p.tags.map((t) => (
-                            <Badge key={t} variant="outline">
-                              {t}
-                            </Badge>
-                          ))}
+                    <Card3D className="will-change-transform" intensity={6} perspective={800} scaleOnHover>
+                      <Card className="relative h-full overflow-hidden bg-background/60 backdrop-blur-xl">
+                        <div className="relative h-40 w-full overflow-hidden">
+                          <Image
+                            src={p.img}
+                            alt={p.title}
+                            fill
+                            className="object-contain p-6 transition-transform duration-300 group-hover:scale-105"
+                          />
                         </div>
-                      </CardContent>
+                        <CardHeader>
+                          <CardTitle className="text-base">{p.title}</CardTitle>
+                          <CardDescription>{p.desc}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex flex-wrap gap-2">
+                            {p.tags.map((t) => (
+                              <Badge key={t} variant="outline">
+                                {t}
+                              </Badge>
+                            ))}
+                          </div>
+                        </CardContent>
 
-                      {/* Overlay reveal */}
-                      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                        <div className="pointer-events-auto">
-                          <Button asChild size="sm" variant="secondary" className="gap-2">
-                            <a href={p.link} target="_blank" rel="noopener noreferrer">
-                              Open <ExternalLink className="size-4" />
-                            </a>
-                          </Button>
+                        {/* Overlay reveal */}
+                        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                          <div className="pointer-events-auto">
+                            <Button asChild size="sm" variant="secondary" className="gap-2">
+                              <a href={p.link} target="_blank" rel="noopener noreferrer">
+                                Open <ExternalLink className="size-4" />
+                              </a>
+                            </Button>
+                          </div>
+                          <div className="mx-6 flex max-w-xs flex-wrap justify-center gap-2">
+                            {p.tags.slice(0, 4).map((t) => (
+                              <Badge key={t} variant="secondary" className="pointer-events-none">
+                                {t}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
-                        <div className="mx-6 flex max-w-xs flex-wrap justify-center gap-2">
-                          {p.tags.slice(0, 4).map((t) => (
-                            <Badge key={t} variant="secondary" className="pointer-events-none">
-                              {t}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </Card>
+                      </Card>
+                    </Card3D>
                   </motion.div>
                 ))}
               </div>

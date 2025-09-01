@@ -7,7 +7,7 @@ import { ReactNode } from "react";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem themes={["light","dark","dim","oled"]}>
       <DefaultSeo
         titleTemplate="%s | Duy Bùi"
         defaultTitle="Duy Bùi — AI Engineer & Developer"

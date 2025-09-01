@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "katex/dist/katex.min.css";
 import { Providers } from "@/components/providers";
 import { Navbar } from "@/components/navbar";
 import { ParticlesBackground } from "@/components/particles-background";
+import { CommandPalette } from "@/components/ui/command-palette";
+import { Dock } from "@/components/ui/dock";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,6 +48,9 @@ export default function RootLayout({
         <Providers>
           <Navbar />
           {children}
+          {/* Global UI */}
+          <CommandPalette />
+          <Dock />
         </Providers>
       </body>
     </html>
