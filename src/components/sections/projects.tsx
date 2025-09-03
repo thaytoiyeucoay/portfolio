@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { projects as allProjects } from "@/data/projects";
-import { Card3D } from "@/components/ui/card-3d";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
@@ -43,7 +42,7 @@ export function ProjectsSection() {
         {categories.map((c) => (
           <TabsContent key={c} value={c}>
             <AnimatePresence mode="popLayout">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3">
                 {(c === "All" ? allProjects : allProjects.filter((p) => p.category === c)).map((p) => (
                   <motion.div
                     key={p.title}
@@ -53,14 +52,15 @@ export function ProjectsSection() {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.98, y: 4 }}
                   >
-                    <Card3D className="will-change-transform" intensity={6} perspective={800} scaleOnHover>
-                      <Card className="relative h-full overflow-hidden bg-background/60 backdrop-blur-xl">
+                    <div>
+                      <Card className="relative h-full overflow-hidden bg-background border border-white/10 rounded-xl shadow-sm transition-transform duration-150 ease-out hover:translate-y-[2px] hover:ring-1 hover:ring-white/15">
                         <div className="relative h-40 w-full overflow-hidden">
                           <Image
                             src={p.img}
                             alt={p.title}
                             fill
-                            className="object-contain p-6 transition-transform duration-300 group-hover:scale-105"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            className="object-contain p-6 transition-transform duration-200"
                           />
                         </div>
                         <CardHeader>
@@ -95,7 +95,7 @@ export function ProjectsSection() {
                           </div>
                         </div>
                       </Card>
-                    </Card3D>
+                    </div>
                   </motion.div>
                 ))}
               </div>

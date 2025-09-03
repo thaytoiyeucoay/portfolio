@@ -19,9 +19,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   title: "Khánh Duy Bùi — AI Engineer & Developer",
   description:
-    "AI Engineer & Developer building intelligent systems with data & code. Portfolio with 3D, animations, and slick UI.",
+    "AI Engineer & Developer building intelligent systems with data & code. Portfolio with clean UI and performance.",
   authors: [{ name: "Duy Bùi" }],
   keywords: [
     "AI Engineer",
@@ -31,6 +32,21 @@ export const metadata: Metadata = {
     "Next.js",
     "Portfolio",
   ],
+  openGraph: {
+    type: "website",
+    url: "/",
+    title: "Khánh Duy Bùi — AI Engineer & Developer",
+    description:
+      "AI Engineer & Developer building intelligent systems with data & code.",
+    images: [{ url: "/opengraph-image" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Khánh Duy Bùi — AI Engineer & Developer",
+    description:
+      "AI Engineer & Developer building intelligent systems with data & code.",
+    images: ["/opengraph-image"],
+  },
 };
 
 export default function RootLayout({
