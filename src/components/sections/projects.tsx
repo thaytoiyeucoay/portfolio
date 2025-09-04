@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { projects as allProjects } from "@/data/projects";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ExternalLink, Smile, Frown, Angry, Heart, HelpCircle, Laugh, Meh, AlertTriangle, CheckCircle2, XCircle, PartyPopper, Zap, Brain, Sun, Cloud, Star, ThumbsUp, ThumbsDown, Tag } from "lucide-react";
@@ -53,6 +53,69 @@ export function ProjectsSection() {
     if (["embarrassment"].includes(key)) return <Cloud className="size-3.5" />;
     if (["excitement"].includes(key)) return <Zap className="size-3.5" />;
     return <Tag className="size-3.5" />;
+  };
+
+  // Inline: Cat vs Dog classifier
+  const [cdImgUrl, setCdImgUrl] = useState<string | null>(null);
+  const [cdLoading, setCdLoading] = useState(false);
+  const [cdError, setCdError] = useState<string | null>(null);
+  const [cdPreds, setCdPreds] = useState<Array<{ className: string; probability: number }>>([]);
+  const [cdVerdict, setCdVerdict] = useState<"Cat" | "Dog" | "Unknown">("Unknown");
+  const cdInputRef = useRef<HTMLInputElement | null>(null);
+  const [cdFileName, setCdFileName] = useState<string>("");
+
+  const onCdFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    if (cdImgUrl) URL.revokeObjectURL(cdImgUrl);
+    setCdImgUrl(url);
+    setCdFileName(file.name);
+    setCdPreds([]);
+    setCdVerdict("Unknown");
+    setCdError(null);
+  };
+
+  const classifyCatDog = async () => {
+    if (!cdImgUrl) return;
+    setCdLoading(true);
+    setCdError(null);
+    setCdPreds([]);
+    setCdVerdict("Unknown");
+    try {
+      const tf = await import("@tensorflow/tfjs");
+      if (tf?.setBackend) {
+        try {
+          await tf.setBackend("webgl");
+          await tf.ready();
+        } catch {}
+      }
+      const mobilenet = await import("@tensorflow-models/mobilenet");
+      const model = await mobilenet.load({ version: 2, alpha: 0.5 });
+      // Create a transient image element for classification (avoid conflict with next/image)
+      const img = document.createElement('img');
+      img.src = cdImgUrl;
+      await new Promise((res, rej) => { img.onload = () => res(null as any); img.onerror = rej; });
+      const results = await model.classify(img as HTMLImageElement);
+      setCdPreds(results as any);
+      const top = (results as any)[0]?.className?.toLowerCase() || "";
+      const isCat = /(\bcat\b|siamese|persian|tabby|tiger cat|lynx|cheetah|leopard)/i.test(top);
+      const isDog = /(\bdog\b|puppy|terrier|retriever|bulldog|husky|poodle|shepherd|shiba|corgi)/i.test(top);
+      if (isCat && !isDog) setCdVerdict("Cat");
+      else if (isDog && !isCat) setCdVerdict("Dog");
+      else {
+        const joined = (results as any).map((r: any) => r.className.toLowerCase()).join("; ");
+        const anyCat = /(\bcat\b|siamese|persian|tabby|tiger cat|lynx|cheetah|leopard)/i.test(joined);
+        const anyDog = /(\bdog\b|puppy|terrier|retriever|bulldog|husky|poodle|shepherd|shiba|corgi)/i.test(joined);
+        if (anyCat && !anyDog) setCdVerdict("Cat");
+        else if (anyDog && !anyCat) setCdVerdict("Dog");
+        else setCdVerdict("Unknown");
+      }
+    } catch (e: any) {
+      setCdError(String(e?.message || e));
+    } finally {
+      setCdLoading(false);
+    }
   };
 
   const analyzeEmotions = async () => {
@@ -164,6 +227,92 @@ export function ProjectsSection() {
                       </CardContent>
 
                       {/* Removed hover overlay */}
+                    </Card>
+                  </div>
+                </motion.div>
+                {/* Interactive: Cat vs Dog Classifier card */}
+                <motion.div
+                  key="CatDog"
+                  className="group"
+                  layout
+                  initial={{ opacity: 0, scale: 0.98, y: 4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.98, y: 4 }}
+                >
+                  <div>
+                    <Card className="relative h-full overflow-hidden bg-background border border-white/10 rounded-xl shadow-sm">
+                      {/* Persistent action button at top-right */}
+                      <div className="absolute right-3 top-3 z-10">
+                        <Button asChild size="sm" variant="secondary" className="gap-2">
+                          <a href="/cat-dog">
+                            Full Project <ExternalLink className="size-4" />
+                          </a>
+                        </Button>
+                      </div>
+                      <div className="relative h-56 w-full overflow-hidden rounded-md">
+                        <Image
+                          src="/projects/cat-dog.svg"
+                          alt="Cat vs Dog"
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                        />
+                      </div>
+                      <CardHeader>
+                        <CardTitle className="text-base">Cat vs Dog Classifier</CardTitle>
+                        <CardDescription>TensorFlow.js + MobileNet (on-device)</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <input
+                              ref={cdInputRef}
+                              type="file"
+                              accept="image/*"
+                              onChange={onCdFile}
+                              className="hidden"
+                            />
+                            <Button size="sm" variant="outline" onClick={() => cdInputRef.current?.click()}>
+                              Chọn ảnh
+                            </Button>
+                            <span className="truncate text-xs text-muted-foreground max-w-[180px]" title={cdFileName}>
+                              {cdFileName || "Chưa chọn ảnh"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button size="sm" className="whitespace-nowrap shrink-0" onClick={classifyCatDog} disabled={!cdImgUrl || cdLoading}>
+                              {cdLoading ? "Đang phân loại..." : "Phân loại"}
+                            </Button>
+                          </div>
+                        </div>
+                        {cdError && <span className="text-xs text-red-400">{cdError}</span>}
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="relative aspect-square w-full overflow-hidden rounded-md border border-white/10">
+                            {cdImgUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={cdImgUrl} alt="preview" className="h-full w-full object-contain bg-muted/20" />
+                            ) : (
+                              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">Chọn ảnh để xem preview</div>
+                            )}
+                          </div>
+                          <div>
+                            <div className="mb-2 flex items-center gap-2 text-xs">
+                              <span>Verdict:</span>
+                              <Badge variant="secondary">{cdVerdict}</Badge>
+                            </div>
+                            {cdPreds.length > 0 && (
+                              <div className="flex flex-col gap-2">
+                                {cdPreds.slice(0,3).map((p, i) => (
+                                  <div key={i} className="flex items-center justify-between rounded-md border border-white/10 px-2 py-1 text-xs">
+                                    <span className="pr-2">{p.className}</span>
+                                    <Badge variant="outline">{(p.probability * 100).toFixed(1)}%</Badge>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
                     </Card>
                   </div>
                 </motion.div>

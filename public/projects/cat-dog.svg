@@ -1,0 +1,28 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6EE7F9"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="24" fill="url(#g)"/>
+  <!-- Cat ear -->
+  <path d="M84 80 L104 40 L124 80 Z" fill="#1F2937" opacity="0.85"/>
+  <!-- Dog ear -->
+  <path d="M172 80 C168 58 188 46 200 60 C204 70 198 84 186 86 Z" fill="#1F2937" opacity="0.85"/>
+  <!-- Face circle -->
+  <circle cx="128" cy="140" r="64" fill="#0B1220" opacity="0.9"/>
+  <!-- Eyes -->
+  <circle cx="104" cy="132" r="8" fill="#F8FAFC"/>
+  <circle cx="152" cy="132" r="8" fill="#F8FAFC"/>
+  <!-- Nose / snout split -->
+  <path d="M128 140 v18" stroke="#F8FAFC" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="128" cy="144" r="5" fill="#F8FAFC"/>
+  <!-- Mouth -->
+  <path d="M128 160 q-10 10 -22 0" stroke="#F8FAFC" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M128 160 q10 10 22 0" stroke="#F8FAFC" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Divider to suggest cat vs dog halves -->
+  <path d="M128 72 v136" stroke="#93C5FD" stroke-opacity="0.6" stroke-dasharray="6 6"/>
+  <!-- Label -->
+  <text x="128" y="228" text-anchor="middle" font-size="16" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto" fill="#F8FAFC" opacity="0.9">Cat vs Dog</text>
+</svg>
