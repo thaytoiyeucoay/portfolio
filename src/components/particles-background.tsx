@@ -48,6 +48,11 @@ export function ParticlesBackground({ fullScreen = false, className }: Props) {
   if (!ready) return null;
 
   return (
-    <Particles id="tsparticles" options={options as any} className={className ?? (fullScreen ? undefined : "absolute inset-0 -z-10")} />
+    <Particles
+      id="tsparticles"
+      options={options as any}
+      className={className ?? (fullScreen ? undefined : "absolute inset-0 -z-10")}
+      style={{ pointerEvents: "none" }}
+    />
   );
 }

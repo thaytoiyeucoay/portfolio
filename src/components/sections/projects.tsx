@@ -9,8 +9,9 @@ import { projects as allProjects } from "@/data/projects";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ExternalLink, Smile, Frown, Angry, Heart, Laugh, Meh, AlertTriangle, CheckCircle2, XCircle, PartyPopper, Zap, Brain, Cloud, Star, ThumbsUp, ThumbsDown, Tag, Bot } from "lucide-react";
+import { ExternalLink, Smile, Frown, Angry, Heart, Laugh, Meh, AlertTriangle, CheckCircle2, XCircle, PartyPopper, Zap, Brain, Cloud, Star, ThumbsUp, ThumbsDown, Tag, Bot, Github, Link as LinkIcon, BookOpen } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const categories = ["All", "AI", "Web", "Data"] as const;
 
@@ -423,9 +424,17 @@ export function ProjectsSection() {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.98, y: 4 }}
                   >
-                    <div>
-                      <Card className="relative h-full overflow-hidden bg-background border border-white/10 rounded-xl shadow-sm transition-transform duration-150 ease-out hover:translate-y-[2px] hover:ring-1 hover:ring-white/15">
-                        <div className="relative h-40 w-full overflow-hidden">
+                    <Card className="relative h-full overflow-hidden bg-background border border-white/10 rounded-xl shadow-lg">
+                        {/* Status badge */}
+                        {p.status && (
+                          <div className="absolute left-3 top-3 z-10">
+                            <Badge variant={p.status === "live" ? "secondary" : "outline"} className="uppercase">
+                              {p.status}
+                            </Badge>
+                          </div>
+                        )}
+
+                        <div className="relative aspect-video w-full overflow-hidden">
                           <Image
                             src={p.img}
                             alt={p.title}
@@ -448,25 +457,53 @@ export function ProjectsSection() {
                           </div>
                         </CardContent>
 
-                        {/* Overlay reveal */}
-                        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                          <div className="pointer-events-auto">
-                            <Button asChild size="sm" variant="secondary" className="gap-2">
-                              <a href={p.link} target="_blank" rel="noopener noreferrer">
-                                Open <ExternalLink className="size-4" />
-                              </a>
-                            </Button>
-                          </div>
-                          <div className="mx-6 flex max-w-xs flex-wrap justify-center gap-2">
-                            {p.tags.slice(0, 4).map((t) => (
-                              <Badge key={t} variant="secondary" className="pointer-events-none">
-                                {t}
-                              </Badge>
-                            ))}
+                        {/* Hover overlay with metrics and actions */}
+                        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/50 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                          {/* Metrics */}
+                          {p.metrics && p.metrics.length > 0 && (
+                            <div className="pointer-events-none mx-4 grid max-w-xs grid-cols-2 gap-2 text-xs">
+                              <TooltipProvider>
+                                {p.metrics.map((m, i) => (
+                                  <Tooltip key={i}>
+                                    <TooltipTrigger asChild>
+                                      <div className="pointer-events-auto rounded-md border border-white/15 bg-white/10 px-2 py-1 backdrop-blur">
+                                        <div className="opacity-80">{m.label}</div>
+                                        <div className="text-sm font-semibold">{m.value}</div>
+                                      </div>
+                                    </TooltipTrigger>
+                                    {m.tooltip && <TooltipContent>{m.tooltip}</TooltipContent>}
+                                  </Tooltip>
+                                ))}
+                              </TooltipProvider>
+                            </div>
+                          )}
+
+                          {/* Quick Actions */}
+                          <div className="pointer-events-auto mt-1 flex items-center gap-2">
+                            {p.repo && (
+                              <Button asChild size="sm" variant="outline" className="gap-2">
+                                <a href={p.repo} target="_blank" rel="noopener noreferrer">
+                                  <Github className="size-4" /> GitHub
+                                </a>
+                              </Button>
+                            )}
+                            {p.live && (
+                              <Button asChild size="sm" variant="secondary" className="gap-2">
+                                <a href={p.live} target="_blank" rel="noopener noreferrer">
+                                  <LinkIcon className="size-4" /> Live
+                                </a>
+                              </Button>
+                            )}
+                            {p.caseStudy && (
+                              <Button asChild size="sm" variant="outline" className="gap-2">
+                                <a href={p.caseStudy}>
+                                  <BookOpen className="size-4" /> Case Study
+                                </a>
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </Card>
-                    </div>
                   </motion.div>
                 ))}
               </div>

@@ -5,6 +5,7 @@ import "katex/dist/katex.min.css";
 import { Providers } from "@/components/providers";
 import { Navbar } from "@/components/navbar";
 import { ParticlesBackground } from "@/components/particles-background";
+import { RouteAwareParticles } from "@/components/route-aware-particles";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { Dock } from "@/components/ui/dock";
 
@@ -59,14 +60,16 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-dvh bg-background text-foreground`}
       >
-        {/* Global particles background */}
-        <ParticlesBackground className="fixed inset-0 z-0" />
+        {/* Route-aware particles background (hidden on content-heavy pages) */}
+        <RouteAwareParticles />
         <Providers>
-          <Navbar />
-          {children}
-          {/* Global UI */}
-          <CommandPalette />
-          <Dock />
+          <div className="relative z-10">
+            <Navbar />
+            {children}
+            {/* Global UI */}
+            <CommandPalette />
+            <Dock />
+          </div>
         </Providers>
       </body>
     </html>
