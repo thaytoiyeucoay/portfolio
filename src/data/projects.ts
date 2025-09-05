@@ -13,7 +13,7 @@ export const projects: Project[] = [
     desc: "LLM chatbot with retrieval-augmented generation over docs.",
     img: "/projects/ai-chatbot.svg",
     tags: ["Next.js", "RAG", "OpenAI", "Pinecone"],
-    link: "#",
+    link: "/chatbot-rag",
     category: "AI",
   },
   {

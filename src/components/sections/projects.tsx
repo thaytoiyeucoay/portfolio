@@ -9,7 +9,8 @@ import { projects as allProjects } from "@/data/projects";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ExternalLink, Smile, Frown, Angry, Heart, HelpCircle, Laugh, Meh, AlertTriangle, CheckCircle2, XCircle, PartyPopper, Zap, Brain, Sun, Cloud, Star, ThumbsUp, ThumbsDown, Tag } from "lucide-react";
+import { ExternalLink, Smile, Frown, Angry, Heart, Laugh, Meh, AlertTriangle, CheckCircle2, XCircle, PartyPopper, Zap, Brain, Cloud, Star, ThumbsUp, ThumbsDown, Tag, Bot } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 const categories = ["All", "AI", "Web", "Data"] as const;
 
@@ -25,6 +26,13 @@ export function ProjectsSection() {
   const [emoLoading, setEmoLoading] = useState(false);
   const [emoError, setEmoError] = useState<string | null>(null);
   const [emoResults, setEmoResults] = useState<Array<{ label: string; score: number }>>([]);
+
+  // Inline: Chatbot RAG (UI-only)
+  const [ragQ, setRagQ] = useState("");
+  const [ragLoading, setRagLoading] = useState(false);
+  const [ragError, setRagError] = useState<string | null>(null);
+  const [ragAns, setRagAns] = useState("");
+  const [ragCitations, setRagCitations] = useState<Array<{ title: string }>>([]);
 
   useEffect(() => {
     if (!emoText.trim()) {
@@ -63,6 +71,22 @@ export function ProjectsSection() {
   const [cdVerdict, setCdVerdict] = useState<"Cat" | "Dog" | "Unknown">("Unknown");
   const cdInputRef = useRef<HTMLInputElement | null>(null);
   const [cdFileName, setCdFileName] = useState<string>("");
+
+  const askRag = async () => {
+    if (!ragQ.trim()) return;
+    setRagLoading(true);
+    setRagError(null);
+    setRagAns("");
+    setRagCitations([]);
+    // UI-only: fake a response
+    setTimeout(() => {
+      setRagAns(
+        "Đây là câu trả lời mẫu từ Chatbot RAG dựa trên tài liệu của bạn. Khi tích hợp backend, câu trả lời sẽ đính kèm trích dẫn chi tiết."
+      );
+      setRagCitations([{ title: "product-guide.pdf" }, { title: "faq.md" }]);
+      setRagLoading(false);
+    }, 600);
+  };
 
   const onCdFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -177,7 +201,7 @@ export function ProjectsSection() {
                   exit={{ opacity: 0, scale: 0.98, y: 4 }}
                 >
                   <div>
-                    <Card className="relative h-full overflow-hidden bg-background border border-white/10 rounded-xl shadow-sm">
+                    <Card className="relative h-full overflow-hidden bg-background border border-white/10 rounded-2xl shadow-lg transition-all hover:ring-2 hover:ring-emerald-400/40 hover:shadow-emerald-500/10">
                       {/* Persistent action button at top-right */}
                       <div className="absolute right-3 top-3 z-10">
                         <Button asChild size="sm" variant="secondary" className="gap-2">
@@ -190,7 +214,7 @@ export function ProjectsSection() {
                         <img
                           src="/emotiondetection.png"
                           alt="Emotion Detection"
-                          className="object-cover"
+                          className="object-cover transition-transform duration-200 group-hover:scale-105"
                         />
                       </div>
                       <CardHeader>
@@ -228,6 +252,66 @@ export function ProjectsSection() {
                   </div>
                 </motion.div>
 
+                {/* Interactive: Chatbot RAG mini card */}
+                <motion.div
+                  key="Chatbot RAG"
+                  className="group"
+                  layout
+                  initial={{ opacity: 0, scale: 0.98, y: 4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.98, y: 4 }}
+                >
+                  <div>
+                    <Card className="relative h-full overflow-hidden bg-background border border-white/10 rounded-xl shadow-sm">
+                      {/* Persistent action button at top-right */}
+                      <div className="absolute right-3 top-3 z-10">
+                        <Button asChild size="sm" variant="secondary" className="gap-2">
+                          <a href="/chatbot-rag">
+                            Full Project <ExternalLink className="size-4" />
+                          </a>
+                        </Button>
+                      </div>
+                      <div className="relative h-56 w-full overflow-hidden rounded-md">
+                        <img
+                          src="/projects/ai-chatbot.svg"
+                          alt="Chatbot RAG"
+                          className="object-contain p-6 transition-transform duration-200 group-hover:scale-105"
+                        />
+                      </div>
+                      <CardHeader>
+                        <CardTitle className="text-base flex items-center gap-2"><Bot className="size-4" /> Chatbot RAG</CardTitle>
+                        <CardDescription>Hỏi đáp theo tài liệu (UI-only)</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <Textarea
+                          placeholder="Đặt câu hỏi nhanh..."
+                          value={ragQ}
+                          onChange={(e) => setRagQ(e.target.value)}
+                          rows={2}
+                        />
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" onClick={askRag} disabled={ragLoading || !ragQ.trim()}>
+                            {ragLoading ? "Đang suy nghĩ..." : "Hỏi"}
+                          </Button>
+                          {ragError && <span className="text-xs text-red-400">{ragError}</span>}
+                        </div>
+                        {ragAns && (
+                          <div className="rounded-md border border-white/10 p-2 text-xs text-muted-foreground">
+                            {ragAns}
+                            {ragCitations.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {ragCitations.map((c) => (
+                                  <Badge key={c.title} variant="outline">{c.title}</Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                </motion.div>
+
                 {/* Interactive: Cat vs Dog Classifier card */}
                 <motion.div
                   key="CatDog"
@@ -247,64 +331,82 @@ export function ProjectsSection() {
                           </a>
                         </Button>
                       </div>
-                      <div className="relative h-56 w-full overflow-hidden rounded-md">
+                      <div className="relative h-56 w-full overflow-hidden rounded-md bg-gradient-to-b from-muted/40 to-transparent">
                         <img
                           src="/projects/cat-dog.svg"
                           alt="Cat vs Dog"
-                          className="object-cover"
+                          className="object-cover transition-transform duration-200 group-hover:scale-105"
                         />
                       </div>
                       <CardHeader>
                         <CardTitle className="text-base">Cat vs Dog Classifier</CardTitle>
-                        <CardDescription>TensorFlow.js + MobileNet (on-device)</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="flex min-w-0 items-center gap-2">
-                            <input
-                              ref={cdInputRef}
-                              type="file"
-                              accept="image/*"
-                              onChange={onCdFile}
-                              className="hidden"
-                            />
-                            <Button size="sm" variant="outline" onClick={() => cdInputRef.current?.click()}>
-                              Chọn ảnh
-                            </Button>
-                            <span className="truncate text-xs text-muted-foreground max-w-[180px]" title={cdFileName}>
-                              {cdFileName || "Chưa chọn ảnh"}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button size="sm" className="whitespace-nowrap shrink-0" onClick={classifyCatDog} disabled={!cdImgUrl || cdLoading}>
-                              {cdLoading ? "Đang phân loại..." : "Phân loại"}
-                            </Button>
-                          </div>
+                        <CardDescription>MobileNet chạy tại client. Tải ảnh và xem xác suất dự đoán.</CardDescription>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Badge variant="outline">On-device</Badge>
+                          <Badge variant="outline">TF.js</Badge>
+                          <Badge variant="outline">MobileNet v2</Badge>
                         </div>
-                        {cdError && <span className="text-xs text-red-400">{cdError}</span>}
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          <div className="relative aspect-square w-full overflow-hidden rounded-md border border-white/10">
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <input
+                          ref={cdInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={onCdFile}
+                          className="hidden"
+                        />
+                        <div
+                          role="button"
+                          onClick={() => cdInputRef.current?.click()}
+                          className="rounded-md border border-dashed border-white/15 bg-muted/10 p-3 text-xs text-muted-foreground hover:bg-muted/20 transition-colors"
+                        >
+                          {cdFileName ? (
+                            <div className="flex items-center justify-between">
+                              <span className="truncate" title={cdFileName}>{cdFileName}</span>
+                              <span className="opacity-70">Nhấn để đổi ảnh</span>
+                            </div>
+                          ) : (
+                            <div className="text-center">Nhấn để chọn ảnh (jpg, png...)</div>
+                          )}
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div className="relative aspect-square w-full overflow-hidden rounded-md border border-white/10 bg-muted/10">
                             {cdImgUrl ? (
-                              <img src={cdImgUrl} alt="preview" className="h-full w-full object-contain bg-muted/20" />
+                              <img src={cdImgUrl} alt="preview" className="h-full w-full object-contain" />
                             ) : (
-                              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">Chọn ảnh để xem preview</div>
+                              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">Chưa có ảnh</div>
                             )}
                           </div>
-                          <div>
-                            <div className="mb-2 flex items-center gap-2 text-xs">
-                              <span>Verdict:</span>
-                              <Badge variant="secondary">{cdVerdict}</Badge>
+                          <div className="flex flex-col gap-3">
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="opacity-80">Kết luận:</span>
+                              <Badge variant="secondary" className="text-xs">{cdVerdict}</Badge>
                             </div>
-                            {cdPreds.length > 0 && (
-                              <div className="flex flex-col gap-2">
-                                {cdPreds.slice(0, 3).map((p, i) => (
-                                  <div key={i} className="flex items-center justify-between rounded-md border border-white/10 px-2 py-1 text-xs">
-                                    <span className="pr-2">{p.className}</span>
-                                    <Badge variant="outline">{(p.probability * 100).toFixed(1)}%</Badge>
+                            <div className="space-y-2">
+                              {cdPreds.slice(0, 3).map((p, i) => (
+                                <div key={i} className="space-y-1">
+                                  <div className="flex items-center justify-between text-xs">
+                                    <span className="truncate pr-3">{p.className}</span>
+                                    <span className="opacity-70">{(p.probability * 100).toFixed(1)}%</span>
                                   </div>
-                                ))}
-                              </div>
-                            )}
+                                  <Progress
+                                    value={Math.round(p.probability * 100)}
+                                    className="bg-emerald-500/20 h-2 rounded-full"
+                                    indicatorClassName="bg-emerald-500"
+                                  />
+                                </div>
+                              ))}
+                              {cdPreds.length === 0 && (
+                                <div className="text-xs text-muted-foreground">Chưa có kết quả. Tải ảnh và nhấn "Phân loại".</div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button size="sm" onClick={classifyCatDog} disabled={!cdImgUrl || cdLoading}>
+                                {cdLoading ? "Đang phân loại..." : "Phân loại"}
+                              </Button>
+                              {cdError && <span className="text-xs text-red-400">{cdError}</span>}
+                            </div>
                           </div>
                         </div>
                       </CardContent>
@@ -329,7 +431,7 @@ export function ProjectsSection() {
                             alt={p.title}
                             fill
                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            className="object-contain p-6 transition-transform duration-200"
+                            className="object-contain p-6 transition-transform duration-200 group-hover:scale-105"
                           />
                         </div>
                         <CardHeader>
