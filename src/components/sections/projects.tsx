@@ -162,6 +162,7 @@ export function ProjectsSection() {
             </TabsTrigger>
           ))}
         </TabsList>
+
         {categories.map((c) => (
           <TabsContent key={c} value={c}>
             <AnimatePresence mode="popLayout">
@@ -186,12 +187,10 @@ export function ProjectsSection() {
                         </Button>
                       </div>
                       <div className="relative h-56 w-full overflow-hidden rounded-md">
-                        <Image
+                        <img
                           src="/emotiondetection.png"
                           alt="Emotion Detection"
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                          className="object-cover"
                         />
                       </div>
                       <CardHeader>
@@ -225,11 +224,10 @@ export function ProjectsSection() {
                           </div>
                         )}
                       </CardContent>
-
-                      {/* Removed hover overlay */}
                     </Card>
                   </div>
                 </motion.div>
+
                 {/* Interactive: Cat vs Dog Classifier card */}
                 <motion.div
                   key="CatDog"
@@ -250,12 +248,10 @@ export function ProjectsSection() {
                         </Button>
                       </div>
                       <div className="relative h-56 w-full overflow-hidden rounded-md">
-                        <Image
+                        <img
                           src="/projects/cat-dog.svg"
                           alt="Cat vs Dog"
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                          className="object-cover"
                         />
                       </div>
                       <CardHeader>
@@ -289,7 +285,6 @@ export function ProjectsSection() {
                         <div className="grid gap-3 sm:grid-cols-2">
                           <div className="relative aspect-square w-full overflow-hidden rounded-md border border-white/10">
                             {cdImgUrl ? (
-                              // eslint-disable-next-line @next/next/no-img-element
                               <img src={cdImgUrl} alt="preview" className="h-full w-full object-contain bg-muted/20" />
                             ) : (
                               <div className="flex h-full items-center justify-center text-xs text-muted-foreground">Chọn ảnh để xem preview</div>
@@ -302,7 +297,7 @@ export function ProjectsSection() {
                             </div>
                             {cdPreds.length > 0 && (
                               <div className="flex flex-col gap-2">
-                                {cdPreds.slice(0,3).map((p, i) => (
+                                {cdPreds.slice(0, 3).map((p, i) => (
                                   <div key={i} className="flex items-center justify-between rounded-md border border-white/10 px-2 py-1 text-xs">
                                     <span className="pr-2">{p.className}</span>
                                     <Badge variant="outline">{(p.probability * 100).toFixed(1)}%</Badge>
@@ -316,6 +311,7 @@ export function ProjectsSection() {
                     </Card>
                   </div>
                 </motion.div>
+
                 {(c === "All" ? allProjects : allProjects.filter((p) => p.category === c)).map((p) => (
                   <motion.div
                     key={p.title}

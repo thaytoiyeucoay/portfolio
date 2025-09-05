@@ -50,9 +50,7 @@ function NeuralNetwork({ nodeCount = 60, radius = 4 }: { nodeCount?: number; rad
           <bufferGeometry>
             <bufferAttribute
               attach="attributes-position"
-              count={2}
-              array={new Float32Array([...nodes[a].toArray(), ...nodes[b].toArray()])}
-              itemSize={3}
+              args={[new Float32Array([...nodes[a].toArray(), ...nodes[b].toArray()]), 3]}
             />
           </bufferGeometry>
           <lineBasicMaterial color="#a78bfa" linewidth={1} transparent opacity={0.7} />
