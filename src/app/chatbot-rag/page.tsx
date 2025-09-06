@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { ExternalLink, Paperclip, Upload, Search, Send, Sparkles, FileText, Settings, Plus, Trash2, RefreshCw, Link as LinkIcon, BookOpen, Info, Quote, Copy, Check, Volume2, Square } from "lucide-react";
+import { ExternalLink, Paperclip, Upload, Search, Send, Sparkles, FileText, Settings, Plus, Trash2, RefreshCw, Link as LinkIcon, BookOpen, Info, Quote, Copy, Check, Volume2, Square, Bot } from "lucide-react";
 // eslint-disable-next-line import/no-unresolved
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -21,9 +21,9 @@ export default function ChatbotRagPage() {
     {
       id: "m1",
       role: "assistant",
-      content: "Xin chào! Tôi là Chatbot RAG. Hãy tải tài liệu hoặc đặt câu hỏi – tôi sẽ trích xuất câu trả lời dựa trên nguồn kiến thức của bạn.",
+      content: "Xin chào! Tôi là trợ lý AI cá nhân của Khánh Duy Bùi. Tôi có thể trả lời các câu hỏi về kinh nghiệm, kỹ năng, dự án và thông tin chuyên môn của anh ấy. Bạn cũng có thể tải lên tài liệu để tôi phân tích và trả lời dựa trên nội dung đó.",
       citations: [
-        { title: "Hướng dẫn sử dụng (PDF)", snippet: "Mục tiêu: Hệ thống RAG kết hợp tìm kiếm và sinh đáp án bằng LLM..." },
+        { title: "Thông tin cá nhân", snippet: "AI Engineer với kinh nghiệm phát triển các hệ thống AI/ML, chuyên về NLP và Computer Vision..." },
       ],
     },
   ]);
@@ -33,18 +33,76 @@ export default function ChatbotRagPage() {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   // TTS state
-  const [ttsEnabled, setTtsEnabled] = useState(true);
+  const [ttsEnabled, setTtsEnabled] = useState(false);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [ttsVoice, setTtsVoice] = useState<SpeechSynthesisVoice | null>(null);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [ttsRate, setTtsRate] = useState(1);
+  const [preferFemale, setPreferFemale] = useState<boolean>(() => {
+    try { return localStorage.getItem("tts_prefer_female_vi") === "1" || true; } catch { return true; }
+  });
+
+  // Helpers: persist selected voice and friendly label
+  function extractVariantName(v: SpeechSynthesisVoice) {
+    const raw = `${v.name}`;
+    // Try to extract Vietnamese proper name after brand keywords
+    const mMs = /Microsoft\s+([A-Za-zÀ-ỹ]+)[^A-Za-zÀ-ỹ]?/i.exec(raw);
+    if (mMs?.[1]) return mMs[1];
+    const mGg = /Google\s+([A-Za-zÀ-ỹ]+)[^A-Za-zÀ-ỹ]?/i.exec(raw);
+    if (mGg?.[1]) return mGg[1];
+    // Clean parentheses content and generic terms
+    const cleaned = raw.replace(/\([^)]*\)/g, "").replace(/[–\-]/g, " ");
+    const blacklist = new Set(["Microsoft","Google","Vietnamese","Vietnam","Online","Natural","Desktop","Voice","Standard","Neural"]);
+    const cand = cleaned.split(/\s+/).filter(Boolean).find(tok => !blacklist.has(tok) && /[A-Za-zÀ-ỹ]/.test(tok));
+    return cand || "";
+  }
+
+  function friendlyVoiceName(v: SpeechSynthesisVoice, withVariant = true) {
+    const raw = `${v.name}`;
+    const isGoogle = /google/i.test(raw);
+    const isMS = /microsoft/i.test(raw);
+    const lower = raw.toLowerCase();
+    const gender = /female|nu|nữ/.test(lower) ? "Nữ" : /male|nam/.test(lower) ? "Nam" : "Tự nhiên";
+    const brand = isGoogle ? "Google" : isMS ? "Microsoft" : "Hệ thống";
+    const variant = withVariant ? extractVariantName(v) : "";
+    return `${gender} – ${brand}${variant ? ` · ${variant}` : ""}`;
+  }
+
+  function saveVoiceURI(uri: string | null) {
+    try { if (uri) localStorage.setItem("tts_voice_uri_vi", uri); } catch {}
+  }
+
+  function getSavedVoiceURI(): string | null {
+    try { return localStorage.getItem("tts_voice_uri_vi"); } catch { return null; }
+  }
+
+  function pickDefaultViVoice(viOnly: SpeechSynthesisVoice[], preferFemaleFlag: boolean) {
+    if (viOnly.length === 0) return null;
+    const isFemale = (v: SpeechSynthesisVoice) => {
+      const n = (v.name || "").toLowerCase();
+      // Common indicators in various engines
+      const keywords = ["female", "nu", "nữ", "female", "woman", "w"];
+      const vietnameseNamesLikelyFemale = ["hoaimy", "linh", "trang", "mai", "thao", "thu", "hoa", "anh"];
+      return keywords.some(k => n.includes(k)) || vietnameseNamesLikelyFemale.some(k => n.includes(k));
+    };
+    const priority = (v: SpeechSynthesisVoice) => (/google/i.test(v.name) ? 2 : /microsoft/i.test(v.name) ? 1 : 0);
+    if (preferFemaleFlag) {
+      const females = viOnly.filter(isFemale);
+      if (females.length > 0) {
+        females.sort((a, b) => priority(b) - priority(a));
+        return females[0];
+      }
+    }
+    // no female found, fallback to overall priority
+    const sorted = [...viOnly].sort((a, b) => priority(b) - priority(a));
+    return sorted[0];
+  }
 
   // KB state (UI-only)
   const [docs, setDocs] = useState<Array<{ name: string; sizeKB: number }>>([
     { name: "product-guide.pdf", sizeKB: 842 },
     { name: "faq.md", sizeKB: 16 },
   ]);
-  const [model, setModel] = useState("gpt-4o-mini");
   const [temperature, setTemperature] = useState(0.2);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -55,16 +113,39 @@ export default function ChatbotRagPage() {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
     const synth = window.speechSynthesis;
 
+    function scoreVoice(v: SpeechSynthesisVoice) {
+      const name = (v.name || "").toLowerCase();
+      let score = 0;
+      if (v.lang?.toLowerCase().startsWith("vi")) score += 10; // chỉ Việt Nam
+      if (name.includes("google")) score += 4;
+      if (name.includes("microsoft")) score += 3;
+      if (name.includes("natural")) score += 2;
+      if (name.includes("female") || name.includes("nu")) score += 1;
+      return score;
+    }
+
     function pickViVN(all: SpeechSynthesisVoice[]) {
-      // Ưu tiên giọng vi-VN
-      const vi = all.find((v) => v.lang?.toLowerCase().startsWith("vi"));
-      return vi || all.find((v) => v.lang?.toLowerCase().includes("en")) || null;
+      // Lọc chỉ giọng tiếng Việt và sắp xếp theo "độ hay" heuristic
+      const viList = all.filter((v) => v.lang?.toLowerCase().startsWith("vi"));
+      if (viList.length === 0) return null;
+      viList.sort((a, b) => scoreVoice(b) - scoreVoice(a));
+      return viList[0] || null;
     }
 
     const load = () => {
       const list = synth.getVoices();
-      setVoices(list);
-      if (!ttsVoice && list.length) setTtsVoice(pickViVN(list));
+      const viOnly = list.filter((v) => v.lang?.toLowerCase().startsWith("vi"));
+      viOnly.sort((a, b) => scoreVoice(b) - scoreVoice(a));
+      setVoices(viOnly);
+      if (!ttsVoice && viOnly.length) {
+        const saved = getSavedVoiceURI();
+        const found = saved ? viOnly.find((v) => v.voiceURI === saved) : null;
+        const best = found || pickDefaultViVoice(viOnly, preferFemale);
+        if (best) {
+          setTtsVoice(best);
+          saveVoiceURI(best.voiceURI);
+        }
+      }
     };
 
     // Một số trình duyệt load voice bất đồng bộ
@@ -74,22 +155,18 @@ export default function ChatbotRagPage() {
     }
   }, [ttsVoice]);
 
+  // persist whenever voice changes
+  useEffect(() => {
+    if (ttsVoice?.voiceURI) saveVoiceURI(ttsVoice.voiceURI);
+  }, [ttsVoice?.voiceURI]);
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length, sending]);
 
   // Speak latest assistant message automatically
-  useEffect(() => {
-    if (!ttsEnabled) return;
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
-    if (!lastAssistant) return;
-    // Chỉ auto-speak nếu vừa thêm (tránh đọc lại khi mount)
-    // Heuristic: nếu đang sending -> không đọc; đọc khi gửi xong và assistant đã append
-    if (!sending) {
-      speak(lastAssistant.id, lastAssistant.content);
-    }
-  }, [messages]);
+  // Tắt auto TTS: chỉ đọc khi người dùng bấm vào nút âm thanh của từng tin nhắn
+  useEffect(() => { /* no auto-speak */ }, [messages]);
 
   const disabled = useMemo(() => sending || !input.trim(), [sending, input]);
 
@@ -97,8 +174,8 @@ export default function ChatbotRagPage() {
     fileInputRef.current?.click();
   }
 
-  function speak(id: string, text: string) {
-    if (!ttsEnabled) return;
+  function speak(id: string, text: string, force = false) {
+    if (!force && !ttsEnabled) return;
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
     const synth = window.speechSynthesis;
     try {
@@ -122,35 +199,111 @@ export default function ChatbotRagPage() {
     setSpeakingId(null);
   }
 
-  function onUploadFiles(files: FileList | null) {
-    if (!files || files.length === 0) return;
-    // UI-only: append to docs list
-    const newDocs = Array.from(files).map((f) => ({ name: f.name, sizeKB: Math.max(1, Math.round(f.size / 1024)) }));
-    setDocs((prev) => [...newDocs, ...prev]);
+  function previewVoice(v: SpeechSynthesisVoice | null, text = "Xin chào, mình là trợ lý AI của Khánh Duy.") {
+    if (!v) return;
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    try {
+      const synth = window.speechSynthesis;
+      synth.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = v.lang || "vi-VN";
+      u.voice = v;
+      u.rate = ttsRate;
+      u.pitch = 1;
+      synth.speak(u);
+    } catch {}
   }
 
-  function onAsk() {
+  function refreshVoices() {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    const synth = window.speechSynthesis;
+    const list = synth.getVoices();
+    const viOnly = list.filter((vv) => vv.lang?.toLowerCase().startsWith("vi"));
+    // Simple priority: Google > Microsoft > others
+    const priority = (name: string) => name.includes("Google") ? 2 : name.includes("Microsoft") ? 1 : 0;
+    viOnly.sort((a, b) => priority((b.name||"")) - priority((a.name||"")));
+    setVoices(viOnly);
+    if (!ttsVoice && viOnly.length) setTtsVoice(viOnly[0]);
+  }
+
+  function onUploadFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const form = new FormData();
+    Array.from(files).forEach((f) => form.append("files", f));
+    // Optimistic UI: show files immediately
+    const newDocs = Array.from(files).map((f) => ({ name: f.name, sizeKB: Math.max(1, Math.round(f.size / 1024)) }));
+    setDocs((prev) => [...newDocs, ...prev]);
+    fetch("/api/documents", { method: "POST", body: form })
+      .then((r) => r.json())
+      .then((res) => {
+        if (!res?.success) throw new Error(res?.message || "Upload failed");
+        // no-op: docs already appended; could refresh stats from res.data
+      })
+      .catch((e) => {
+        // Revert optimistic on failure
+        setDocs((prev) => prev.filter((d) => !newDocs.some((nd) => nd.name === d.name && nd.sizeKB === d.sizeKB)));
+        console.error("Upload error", e);
+        alert("Tải tài liệu thất bại. Vui lòng thử lại.");
+      });
+  }
+
+  async function onAsk() {
     if (!input.trim()) return;
     setSending(true);
-    const userMsg = { id: crypto.randomUUID(), role: "user" as const, content: input };
+    const userContent = input;
+    const userMsg = { id: crypto.randomUUID(), role: "user" as const, content: userContent };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
 
-    // Fake assistant response after delay (UI-only)
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userContent })
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) throw new Error(data?.message || "Chat API error");
+
+      const payload = data.data as {
+        answer: string;
+        sources: Array<{ title: string; content: string; source: string; similarity: number }>;
+        searchUsed: boolean;
+      };
+      const citations = (payload.sources || []).map((s) => ({
+        title: s.title,
+        url: /^https?:\/\//i.test(s.source) ? s.source : undefined,
+        snippet: s.content,
+      }));
       const assistantMsg = {
         id: crypto.randomUUID(),
         role: "assistant" as const,
-        content:
-          "Đây là câu trả lời mẫu dựa trên RAG. Khi tích hợp backend, câu trả lời sẽ được tổng hợp từ các đoạn trích liên quan trong bộ tài liệu của bạn.",
-        citations: [
-          { title: "faq.md", snippet: "RAG: Retrieval-Augmented Generation giúp mô hình trả lời chính xác hơn..." },
-          { title: "product-guide.pdf", snippet: "Chương 2: Pipeline ingest -> chunk -> embed -> index -> retrieve -> rerank -> generate" },
-        ],
+        content: payload.answer,
+        citations,
       };
       setMessages((prev) => [...prev, assistantMsg]);
+    } catch (e) {
+      console.error(e);
+      const errMsg = {
+        id: crypto.randomUUID(),
+        role: "assistant" as const,
+        content: "Xin lỗi anh, em gặp lỗi khi xử lý yêu cầu. Anh thử lại giúp em với nhé. 🙏",
+      };
+      setMessages((prev) => [...prev, errMsg]);
+    } finally {
       setSending(false);
-    }, 900);
+    }
+  }
+
+  async function initRag() {
+    try {
+      const res = await fetch("/api/init", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data?.success) throw new Error(data?.message || "Init failed");
+      alert(`Khởi tạo tri thức cá nhân thành công (chunks: ${data.data?.personalDataChunks || 0})`);
+    } catch (e) {
+      console.error(e);
+      alert("Khởi tạo thất bại. Vui lòng thử lại.");
+    }
   }
 
   function onClearChat() {
@@ -168,8 +321,13 @@ export default function ChatbotRagPage() {
     <div className="relative container mx-auto max-w-6xl px-4 py-10">
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="bg-gradient-to-r from-emerald-400 to-sky-400 bg-clip-text text-2xl font-semibold text-transparent">Chatbot RAG</h1>
-          <p className="text-sm text-muted-foreground">Giao diện demo cho chatbot dùng Retrieval-Augmented Generation. UI-only, chưa kết nối backend.</p>
+          <h1 className="bg-gradient-to-r from-emerald-400 to-sky-400 bg-clip-text text-3xl font-bold text-transparent flex items-center gap-3">
+            <Bot className="h-8 w-8 text-emerald-400" />
+            Trợ lý AI của Khánh Duy
+          </h1>
+          <p className="text-sm text-muted-foreground mt-2">
+            Xin chào! Tôi là trợ lý AI cá nhân của Khánh Duy Bùi. Hãy hỏi tôi về kinh nghiệm, kỹ năng, dự án hoặc bất kỳ điều gì bạn muốn biết.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={onClearChat}>
@@ -205,6 +363,9 @@ export default function ChatbotRagPage() {
                 <Button size="sm" onClick={onAttach}><Upload className="mr-2 size-4" /> Tải file</Button>
                 <Button size="sm" variant="outline"><LinkIcon className="mr-2 size-4" /> Thêm URL</Button>
                 <Button size="sm" variant="ghost" title="Re-index"><RefreshCw className="size-4" /></Button>
+                <Button size="sm" variant="secondary" onClick={initRag} title="Khởi tạo tri thức cá nhân từ hồ sơ của anh">
+                  <Sparkles className="mr-2 size-4" /> Khởi tạo tri thức
+                </Button>
               </div>
               <div className="rounded-md border border-white/10">
                 <div className="flex items-center justify-between px-3 py-2 text-xs text-muted-foreground">
@@ -230,19 +391,10 @@ export default function ChatbotRagPage() {
           <Card className="border-white/10">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2"><Settings className="size-4" /> Cấu hình</CardTitle>
-              <CardDescription>Tuỳ chỉnh mô hình và tham số.</CardDescription>
+              <CardDescription>Tuỳ chỉnh giọng đọc và tham số.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-xs text-muted-foreground">Model</label>
-                <div className="flex items-center gap-2">
-                  <select value={model} onChange={(e) => setModel(e.target.value)} className="w-full rounded-md border border-white/10 bg-transparent px-3 py-2 text-sm outline-none">
-                    <option className="bg-background" value="gpt-4o-mini">gpt-4o-mini</option>
-                    <option className="bg-background" value="gpt-4.1">gpt-4.1</option>
-                    <option className="bg-background" value="claude-3.5-sonnet">claude-3.5-sonnet</option>
-                  </select>
-                </div>
-              </div>
+              {/* Lựa chọn model đã được loại bỏ theo yêu cầu */}
               <div className="space-y-2">
                 <label className="text-xs text-muted-foreground">Nhiệt độ: {temperature.toFixed(1)}</label>
                 <input
@@ -257,28 +409,21 @@ export default function ChatbotRagPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs text-muted-foreground">Giọng đọc (TTS)</label>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={ttsVoice?.voiceURI ?? ""}
-                    onChange={(e) => {
-                      const v = voices.find((vv) => vv.voiceURI === e.target.value) || null;
-                      setTtsVoice(v);
-                    }}
-                    className="w-full rounded-md border border-white/10 bg-transparent px-3 py-2 text-sm outline-none"
-                    disabled={voices.length === 0}
-                  >
-                    {voices.length === 0 ? (
-                      <option className="bg-background" value="">Không tìm thấy giọng đọc</option>
-                    ) : (
-                      voices.map((v) => (
-                        <option className="bg-background" key={v.voiceURI} value={v.voiceURI}>
-                          {v.name} ({v.lang})
-                        </option>
-                      ))
-                    )}
-                  </select>
+                <label className="text-xs text-muted-foreground">Giọng đọc (Tiếng Việt)</label>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-sm">
+                    {ttsVoice ? friendlyVoiceName(ttsVoice) : "Chưa có giọng Việt"}
+                  </div>
+                  <Badge variant="secondary">Đang sử dụng</Badge>
                 </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => previewVoice(ttsVoice)}>Nghe thử</Button>
+                  <Button size="sm" variant="ghost" onClick={refreshVoices}>Làm mới</Button>
+                </div>
+                {voices.length === 0 && (
+                  <div className="text-[11px] text-muted-foreground">Mẹo: Hãy bật gói giọng đọc tiếng Việt của hệ điều hành/trình duyệt để sử dụng TTS.</div>
+                )}
+                {/* Selector và danh sách giọng đã ẩn theo yêu cầu */}
               </div>
 
               <div className="space-y-2">
@@ -295,8 +440,8 @@ export default function ChatbotRagPage() {
               </div>
               <div className="flex flex-wrap gap-2 text-xs">
                 <Badge variant="secondary">Chunking: Recursive</Badge>
-                <Badge variant="outline">Embed: text-embedding-3-small</Badge>
-                <Badge variant="outline">Vector DB: Pinecone</Badge>
+                <Badge variant="outline">Embed: text-embedding-004</Badge>
+                <Badge variant="outline">Vector DB: SQLite</Badge>
               </div>
             </CardContent>
           </Card>
@@ -331,10 +476,10 @@ export default function ChatbotRagPage() {
                         </div>
                       )}
                       <div className={cn(
-                        "max-w-[82%] rounded-2xl border p-3 text-sm shadow-sm",
+                        "max-w-[82%] rounded-2xl border p-3 text-sm shadow-sm backdrop-blur-sm transition-colors",
                         m.role === "assistant"
-                          ? "border-emerald-500/20 bg-emerald-500/10"
-                          : "border-sky-500/20 bg-sky-500/10"
+                          ? "border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-teal-500/10"
+                          : "border-sky-500/20 bg-gradient-to-br from-sky-500/10 to-indigo-500/10"
                       )}>
                         <div className="prose prose-invert max-w-none whitespace-pre-wrap leading-relaxed [&_*]:break-words">{m.content}</div>
                         {m.citations && m.citations.length > 0 && (
@@ -380,7 +525,7 @@ export default function ChatbotRagPage() {
                                     size="icon"
                                     variant="ghost"
                                     className="h-7 w-7"
-                                    onClick={() => (speakingId === m.id ? stopSpeaking() : speak(m.id, m.content))}
+                                    onClick={() => (speakingId === m.id ? stopSpeaking() : speak(m.id, m.content, true))}
                                   >
                                     {speakingId === m.id ? <Square className="size-4" /> : <Volume2 className="size-4" />}
                                   </Button>
@@ -435,7 +580,7 @@ export default function ChatbotRagPage() {
                     <Textarea
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
-                      placeholder="Đặt câu hỏi dựa trên tài liệu của bạn..."
+                      placeholder="Hỏi tôi về Khánh Duy hoặc tải tài liệu để phân tích..."
                       rows={2}
                       className="min-h-[44px] flex-1 resize-none rounded-full bg-transparent px-3"
                       onKeyDown={(e) => {
@@ -466,9 +611,9 @@ export default function ChatbotRagPage() {
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {[
-                  "Tóm tắt chương 2 trong product-guide.pdf",
-                  "Tạo checklist triển khai dự án dựa trên tài liệu",
-                  "Liệt kê 5 tính năng chính và dẫn nguồn",
+                  "Kể về kinh nghiệm làm việc của Khánh Duy",
+                  "Kỹ năng chuyên môn của Khánh Duy là gì?",
+                  "Dự án nào Khánh Duy tự hào nhất?",
                 ].map((s, i) => (
                   <Button key={i} size="sm" variant="outline" onClick={() => setInput(s)}>
                     <Quote className="mr-2 size-4" /> {s}
