@@ -24,38 +24,44 @@ export class RAGService {
   private vectorStore: VectorStore;
   private chatModel: string;
   private tavilyApiKey: string;
+  // Google Custom Search disabled per requirement to use Tavily only
 
   constructor() {
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
     this.vectorStore = new VectorStore();
     this.chatModel = process.env.GEMINI_CHAT_MODEL || 'gemini-1.5-flash';
     this.tavilyApiKey = process.env.TAVILY_API_KEY!;
+    // Google CSE keys intentionally ignored
   }
 
-  async query(question: string): Promise<RAGResponse> {
+  async query(question: string, opts?: { forceWeb?: boolean; allowWeb?: boolean }): Promise<RAGResponse> {
     try {
+      // Tùy chọn: ép dùng web search
+      if (opts?.forceWeb) {
+        const searchResults = await this.searchWeb(question);
+        return await this.generateSearchResponse(question, searchResults);
+      }
+
       // Bước 1: Tìm kiếm trong knowledge base
       const similarDocs = await this.vectorStore.searchSimilar(question, 5);
-      
+
       // Bước 2: Kiểm tra xem có đủ thông tin trong KB không
       const hasRelevantInfo = similarDocs.length > 0 && similarDocs[0].similarity > 0.7;
-      
+
       if (hasRelevantInfo) {
-        // Trả lời dựa trên RAG
         return await this.generateRAGResponse(question, similarDocs);
-      } else {
-        // Kiểm tra xem câu hỏi có liên quan đến thông tin cá nhân không
-        const isPersonalQuestion = this.isPersonalQuestion(question);
-        
-        if (isPersonalQuestion) {
-          // Tìm kiếm web để bổ sung thông tin
-          const searchResults = await this.searchWeb(question + " Khánh Duy Bùi AI Engineer");
+      }
+
+      // Không auto web search nữa. Chỉ tìm web khi được bật allowWeb.
+      if (opts?.allowWeb) {
+        const searchResults = await this.searchWeb(question);
+        if (searchResults.length > 0) {
           return await this.generateSearchResponse(question, searchResults);
-        } else {
-          // Trả lời bằng LLM thuần túy
-          return await this.generateLLMResponse(question);
         }
       }
+
+      // Nếu không bật web hoặc không có kết quả -> LLM thuần tuý
+      return await this.generateLLMResponse(question);
     } catch (error) {
       console.error('Error in RAG query:', error);
       throw error;
@@ -160,6 +166,7 @@ LƯU Ý TRẢ LỜI:
   }
 
   private async searchWeb(query: string): Promise<TavilySearchResult[]> {
+    // Tavily only (per user preference)
     try {
       const response = await fetch('https://api.tavily.com/search', {
         method: 'POST',
@@ -182,7 +189,6 @@ LƯU Ý TRẢ LỜI:
       }
 
       const data = await response.json();
-      
       return data.results?.map((result: any) => ({
         title: result.title,
         url: result.url,
@@ -190,7 +196,7 @@ LƯU Ý TRẢ LỜI:
         score: result.score || 0
       })) || [];
     } catch (error) {
-      console.error('Error searching web:', error);
+      console.error('Error searching web (Tavily):', error);
       return [];
     }
   }

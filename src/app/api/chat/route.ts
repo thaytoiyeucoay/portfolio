@@ -4,7 +4,7 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
-    const { message } = await request.json();
+    const { message, forceWeb, allowWeb } = await request.json();
     
     if (!message || typeof message !== 'string') {
       return NextResponse.json(
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     const ragService = new RAGService();
-    const response = await ragService.query(message);
+    const response = await ragService.query(message, { forceWeb: !!forceWeb, allowWeb: !!allowWeb });
 
     return NextResponse.json({
       success: true,

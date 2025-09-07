@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ExternalLink, Smile, Frown, Angry, Heart, Laugh, Meh, AlertTriangle, CheckCircle2, XCircle, PartyPopper, Zap, Brain, Cloud, Star, ThumbsUp, ThumbsDown, Tag, Bot, Github, Link as LinkIcon, BookOpen } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 const categories = ["All", "AI", "Web", "Data"] as const;
 
@@ -64,6 +65,46 @@ export function ProjectsSection() {
     return <Tag className="size-3.5" />;
   };
 
+  const explainSnippet = async () => {
+    if (!exCode.trim()) return;
+    setExLoading(true);
+    setExError(null);
+    setExResult("");
+    try {
+      const resp = await fetch("/api/explain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: exCode, language: exLang })
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data?.success) throw new Error(data?.error || "Request failed");
+      setExResult(String(data.data?.explanation || ""));
+      setExIssues(Array.isArray(data.data?.issues) ? data.data.issues.slice(0, 3) : []);
+      setExSugs(Array.isArray(data.data?.suggestions) ? data.data.suggestions.slice(0, 3) : []);
+    } catch (e: any) {
+      setExError(String(e?.message || e));
+    } finally {
+      setExLoading(false);
+    }
+  };
+
+  const simpleHighlight = (code: string, lang: typeof exLang) => {
+    const esc = (s: string) => s.replace(/[&<>]/g, (m) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[m] as string));
+    let out = esc(code);
+    const kw = {
+      javascript: /\b(const|let|var|function|return|if|else|for|while|switch|case|break|class|new|try|catch|finally|import|from|export|async|await)\b/g,
+      typescript: /\b(const|let|var|function|return|if|else|for|while|switch|case|break|class|new|try|catch|finally|import|from|export|async|await|interface|type)\b/g,
+      python: /\b(def|return|if|elif|else|for|while|try|except|finally|class|import|from|as|with|lambda|yield|pass|break|continue)\b/g,
+      java: /\b(public|private|protected|class|interface|static|final|void|int|double|float|boolean|new|return|if|else|switch|case|break|try|catch|finally|import|package)\b/g
+    } as const;
+    out = out.replace(kw[lang], '<span class="text-emerald-400">$1</span>');
+    // strings
+    out = out.replace(/(["'`])(.*?)(\1)/g, '<span class="text-sky-300">$1$2$3</span>');
+    // numbers
+    out = out.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="text-amber-300">$1</span>');
+    return out;
+  };
+
   // Inline: Cat vs Dog classifier
   const [cdImgUrl, setCdImgUrl] = useState<string | null>(null);
   const [cdLoading, setCdLoading] = useState(false);
@@ -72,6 +113,15 @@ export function ProjectsSection() {
   const [cdVerdict, setCdVerdict] = useState<"Cat" | "Dog" | "Unknown">("Unknown");
   const cdInputRef = useRef<HTMLInputElement | null>(null);
   const [cdFileName, setCdFileName] = useState<string>("");
+
+  // Inline: Code Snippet Explainer (uses backend API)
+  const [exCode, setExCode] = useState("");
+  const [exLang, setExLang] = useState<"javascript"|"typescript"|"python"|"java">("javascript");
+  const [exLoading, setExLoading] = useState(false);
+  const [exResult, setExResult] = useState<string>("");
+  const [exIssues, setExIssues] = useState<string[]>([]);
+  const [exSugs, setExSugs] = useState<string[]>([]);
+  const [exError, setExError] = useState<string | null>(null);
 
   const askRag = async () => {
     if (!ragQ.trim()) return;
@@ -202,7 +252,7 @@ export function ProjectsSection() {
                   exit={{ opacity: 0, scale: 0.98, y: 4 }}
                 >
                   <div>
-                    <Card className="relative h-full overflow-hidden bg-background border border-white/10 rounded-2xl shadow-lg transition-all hover:ring-2 hover:ring-emerald-400/40 hover:shadow-emerald-500/10">
+                    <Card className="relative h-[520px] overflow-hidden bg-background border border-white/10 rounded-2xl shadow-lg transition-all hover:ring-2 hover:ring-emerald-400/40 hover:shadow-emerald-500/10 flex flex-col">
                       {/* Persistent action button at top-right */}
                       <div className="absolute right-3 top-3 z-10">
                         <Button asChild size="sm" variant="secondary" className="gap-2">
@@ -222,7 +272,7 @@ export function ProjectsSection() {
                         <CardTitle className="text-base">Emotion Detection</CardTitle>
                         <CardDescription>Powered by Hugging Face Inference API</CardDescription>
                       </CardHeader>
-                      <CardContent className="space-y-3">
+                      <CardContent className="space-y-3 flex-1 overflow-auto">
                         <Textarea
                           placeholder="Nhập văn bản (tiếng Anh cho model mặc định)..."
                           value={emoText}
@@ -253,6 +303,129 @@ export function ProjectsSection() {
                   </div>
                 </motion.div>
 
+                {/* Interactive: Image Captioning + Tags */}
+                <motion.div
+                  key="Image Captioning + Tags"
+                  className="group"
+                  layout
+                  initial={{ opacity: 0, scale: 0.98, y: 4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.98, y: 4 }}
+                >
+                  <div>
+                    <Card className="relative h-[520px] overflow-hidden bg-background border border-white/10 rounded-xl shadow-sm flex flex-col">
+                      {/* Persistent action button at top-right */}
+                      <div className="absolute right-3 top-3 z-10">
+                        <Button asChild size="sm" variant="secondary" className="gap-2">
+                          <a href="/image-caption">
+                            Full Project <ExternalLink className="size-4" />
+                          </a>
+                        </Button>
+                      </div>
+                      <div className="relative h-56 w-full overflow-hidden rounded-md">
+                        <img
+                          src="/projects/image-caption.svg"
+                          alt="Image Captioning"
+                          className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                        />
+                      </div>
+                      <CardHeader>
+                        <CardTitle className="text-base">Image Captioning + Tags</CardTitle>
+                        <CardDescription>Tạo caption & hashtag từ ảnh.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-3 flex-1 overflow-auto">
+                        <div className="text-xs text-muted-foreground">Mở trang dự án để tải ảnh hoặc dán URL và xem caption.</div>
+                        <div>
+                          <Button asChild size="sm" variant="outline">
+                            <a href="/image-caption" className="gap-2">Bắt đầu</a>
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </motion.div>
+
+                {/* Interactive: Code Snippet Explainer mini card */}
+                <motion.div
+                  key="Code Snippet Explainer"
+                  className="group"
+                  layout
+                  initial={{ opacity: 0, scale: 0.98, y: 4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.98, y: 4 }}
+                >
+                  <div>
+                    <Card className="relative h-[520px] overflow-hidden bg-background border border-white/10 rounded-xl shadow-sm flex flex-col">
+                      {/* Persistent action button at top-right */}
+                      <div className="absolute right-3 top-3 z-10">
+                        <Button asChild size="sm" variant="secondary" className="gap-2">
+                          <a href="/code-explainer">
+                            Full Project <ExternalLink className="size-4" />
+                          </a>
+                        </Button>
+                      </div>
+                      <div className="relative h-56 w-full overflow-hidden rounded-md">
+                        <img
+                          src="/projects/code-explainer.svg"
+                          alt="Code Snippet Explainer"
+                          className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                        />
+                      </div>
+                      <CardHeader>
+                        <CardTitle className="text-base">Code Snippet Explainer</CardTitle>
+                        <CardDescription>Dán code và xem giải thích nhanh.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-3 flex-1 overflow-auto">
+                        <div className="flex flex-wrap gap-1 text-[11px]">
+                          {(["javascript","typescript","python","java"] as const).map(l => (
+                            <button key={l} type="button" onClick={() => setExLang(l)} className={cn("rounded-md border px-2 py-0.5", exLang===l?"border-emerald-400/50 bg-emerald-500/10":"border-white/10 hover:bg-white/5")}>{l}</button>
+                          ))}
+                        </div>
+                        <Textarea
+                          placeholder={`Dán code ở đây...`}
+                          value={exCode}
+                          onChange={(e) => setExCode(e.target.value)}
+                          rows={3}
+                        />
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" onClick={explainSnippet} disabled={exLoading || !exCode.trim()}>
+                            {exLoading ? "Đang phân tích..." : "Giải thích"}
+                          </Button>
+                          {exError && <span className="text-xs text-red-400 truncate">{exError}</span>}
+                        </div>
+                        {exCode && (
+                          <div className="rounded-md border border-white/10 bg-black/20 p-2 text-xs font-mono overflow-auto" dangerouslySetInnerHTML={{ __html: simpleHighlight(exCode, exLang) }} />
+                        )}
+                        {exResult && (
+                          <div className="rounded-md border border-white/10 p-2 text-xs text-muted-foreground whitespace-pre-wrap">
+                            {exResult}
+                          </div>
+                        )}
+                        {(exIssues.length>0 || exSugs.length>0) && (
+                          <div className="grid grid-cols-1 gap-2">
+                            {exIssues.length>0 && (
+                              <div>
+                                <div className="mb-1 text-[11px] opacity-80">Vấn đề</div>
+                                <ul className="list-disc pl-4 text-xs space-y-0.5">
+                                  {exIssues.map((i, idx)=>(<li key={idx} className="">{i}</li>))}
+                                </ul>
+                              </div>
+                            )}
+                            {exSugs.length>0 && (
+                              <div>
+                                <div className="mb-1 text-[11px] opacity-80">Đề xuất</div>
+                                <ul className="list-disc pl-4 text-xs space-y-0.5">
+                                  {exSugs.map((s, idx)=>(<li key={idx}>{s}</li>))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                </motion.div>
+
                 {/* Interactive: Chatbot RAG mini card */}
                 <motion.div
                   key="Chatbot RAG"
@@ -263,7 +436,7 @@ export function ProjectsSection() {
                   exit={{ opacity: 0, scale: 0.98, y: 4 }}
                 >
                   <div>
-                    <Card className="relative h-full overflow-hidden bg-background border border-white/10 rounded-xl shadow-sm">
+                    <Card className="relative h-[520px] overflow-hidden bg-background border border-white/10 rounded-xl shadow-sm flex flex-col">
                       {/* Persistent action button at top-right */}
                       <div className="absolute right-3 top-3 z-10">
                         <Button asChild size="sm" variant="secondary" className="gap-2">
@@ -274,9 +447,9 @@ export function ProjectsSection() {
                       </div>
                       <div className="relative h-56 w-full overflow-hidden rounded-md">
                         <img
-                          src="/projects/ai-chatbot.svg"
+                          src="/chatbot-rag.jpg"
                           alt="Chatbot RAG"
-                          className="object-contain p-6 transition-transform duration-200 group-hover:scale-105"
+                          className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
                         />
                       </div>
                       <CardHeader>
@@ -332,11 +505,11 @@ export function ProjectsSection() {
                           </a>
                         </Button>
                       </div>
-                      <div className="relative h-56 w-full overflow-hidden rounded-md bg-gradient-to-b from-muted/40 to-transparent">
+                      <div className="relative h-56 w-full overflow-hidden rounded-md">
                         <img
-                          src="/projects/cat-dog.svg"
+                          src="/cat-dog-classification.png"
                           alt="Cat vs Dog"
-                          className="object-cover transition-transform duration-200 group-hover:scale-105"
+                          className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
                         />
                       </div>
                       <CardHeader>
@@ -348,7 +521,7 @@ export function ProjectsSection() {
                           <Badge variant="outline">MobileNet v2</Badge>
                         </div>
                       </CardHeader>
-                      <CardContent className="space-y-4">
+                      <CardContent className="space-y-4 flex-1 overflow-auto">
                         <input
                           ref={cdInputRef}
                           type="file"
