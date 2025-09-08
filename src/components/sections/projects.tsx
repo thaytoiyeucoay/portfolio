@@ -23,6 +23,13 @@ export function ProjectsSection() {
     [tab]
   );
 
+  // Show only projects that have real pages implemented
+  const allowedLinks = useMemo(() => new Set(["/fake-news"]), []);
+  const visibleProjects = useMemo(
+    () => filtered.filter((p) => typeof p.link === "string" && allowedLinks.has(p.link)),
+    [filtered, allowedLinks]
+  );
+
   // Inline mini emotion analyzer for the Projects grid
   const [emoText, setEmoText] = useState("");
   const [emoLoading, setEmoLoading] = useState(false);
@@ -243,9 +250,10 @@ export function ProjectsSection() {
             <AnimatePresence mode="popLayout">
               <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3">
                 {/* Interactive: Emotion Detection project card */}
+                {/* Hidden because no full project page yet */}
                 <motion.div
                   key="Emotion Detection"
-                  className="group"
+                  className="group hidden"
                   layout
                   initial={{ opacity: 0, scale: 0.98, y: 4 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -495,6 +503,7 @@ export function ProjectsSection() {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.98, y: 4 }}
                 >
+
                   <div>
                     <Card className="relative h-full overflow-hidden bg-background border border-white/10 rounded-xl shadow-sm">
                       {/* Persistent action button at top-right */}
@@ -588,7 +597,7 @@ export function ProjectsSection() {
                   </div>
                 </motion.div>
 
-                {(c === "All" ? allProjects : allProjects.filter((p) => p.category === c)).map((p) => (
+                {(c === "All" ? visibleProjects : visibleProjects.filter((p) => p.category === c)).map((p) => (
                   <motion.div
                     key={p.title}
                     className="group"
@@ -598,6 +607,16 @@ export function ProjectsSection() {
                     exit={{ opacity: 0, scale: 0.98, y: 4 }}
                   >
                     <Card className="relative h-full overflow-hidden bg-background border border-white/10 rounded-xl shadow-lg">
+                        {/* Persistent Full Project button */}
+                        {p.link && (
+                          <div className="absolute right-3 top-3 z-10">
+                            <Button asChild size="sm" variant="secondary" className="gap-2">
+                              <a href={p.link}>
+                                Full Project <ExternalLink className="size-4" />
+                              </a>
+                            </Button>
+                          </div>
+                        )}
                         {/* Status badge */}
                         {p.status && (
                           <div className="absolute left-3 top-3 z-10">
@@ -651,30 +670,7 @@ export function ProjectsSection() {
                             </div>
                           )}
 
-                          {/* Quick Actions */}
-                          <div className="pointer-events-auto mt-1 flex items-center gap-2">
-                            {p.repo && (
-                              <Button asChild size="sm" variant="outline" className="gap-2">
-                                <a href={p.repo} target="_blank" rel="noopener noreferrer">
-                                  <Github className="size-4" /> GitHub
-                                </a>
-                              </Button>
-                            )}
-                            {p.live && (
-                              <Button asChild size="sm" variant="secondary" className="gap-2">
-                                <a href={p.live} target="_blank" rel="noopener noreferrer">
-                                  <LinkIcon className="size-4" /> Live
-                                </a>
-                              </Button>
-                            )}
-                            {p.caseStudy && (
-                              <Button asChild size="sm" variant="outline" className="gap-2">
-                                <a href={p.caseStudy}>
-                                  <BookOpen className="size-4" /> Case Study
-                                </a>
-                              </Button>
-                            )}
-                          </div>
+                          {/* Hover Quick Actions removed as requested */}
                         </div>
                       </Card>
                   </motion.div>
