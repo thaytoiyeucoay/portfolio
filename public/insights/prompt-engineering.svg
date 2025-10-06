@@ -1,0 +1,98 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:#d97706;stop-opacity:0.1" />
+    </linearGradient>
+    <linearGradient id="brain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="text" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="400" height="300" fill="url(#bg)" rx="20"/>
+  
+  <!-- Brain/AI Icon -->
+  <g transform="translate(80, 60)">
+    <circle cx="50" cy="40" r="35" fill="url(#brain)" opacity="0.9"/>
+    <!-- Neural network pattern -->
+    <g opacity="0.7" stroke="currentColor" stroke-width="2" fill="none">
+      <circle cx="35" cy="25" r="3"/>
+      <circle cx="65" cy="25" r="3"/>
+      <circle cx="25" cy="45" r="3"/>
+      <circle cx="50" cy="45" r="3"/>
+      <circle cx="75" cy="45" r="3"/>
+      <circle cx="35" cy="65" r="3"/>
+      <circle cx="65" cy="65" r="3"/>
+      
+      <line x1="35" y1="25" x2="25" y2="45"/>
+      <line x1="35" y1="25" x2="50" y2="45"/>
+      <line x1="65" y1="25" x2="50" y2="45"/>
+      <line x1="65" y1="25" x2="75" y2="45"/>
+      <line x1="25" y1="45" x2="35" y2="65"/>
+      <line x1="50" y1="45" x2="35" y2="65"/>
+      <line x1="50" y1="45" x2="65" y2="65"/>
+      <line x1="75" y1="45" x2="65" y2="65"/>
+    </g>
+  </g>
+  
+  <!-- Prompt Text -->
+  <g transform="translate(220, 80)">
+    <rect width="140" height="100" fill="url(#text)" opacity="0.1" rx="8"/>
+    <rect width="140" height="100" fill="none" stroke="currentColor" stroke-width="2" opacity="0.3" rx="8"/>
+    
+    <!-- Text lines -->
+    <g opacity="0.8" fill="currentColor">
+      <rect x="15" y="20" width="110" height="3" rx="1"/>
+      <rect x="15" y="30" width="80" height="3" rx="1"/>
+      <rect x="15" y="40" width="100" height="3" rx="1"/>
+      <rect x="15" y="50" width="60" height="3" rx="1"/>
+      
+      <rect x="15" y="70" width="90" height="3" rx="1"/>
+      <rect x="15" y="80" width="120" height="3" rx="1"/>
+    </g>
+    
+    <!-- Cursor -->
+    <rect x="75" y="85" width="2" height="8" fill="url(#brain)">
+      <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+  
+  <!-- Connection arrows -->
+  <g transform="translate(180, 120)" opacity="0.6">
+    <path d="M 0 0 L 20 0 L 15 -5 M 20 0 L 15 5" 
+          stroke="currentColor" stroke-width="2" fill="none"/>
+    <path d="M 0 0 L -20 0 L -15 -5 M -20 0 L -15 5" 
+          stroke="currentColor" stroke-width="2" fill="none"/>
+  </g>
+  
+  <!-- Techniques badges -->
+  <g transform="translate(50, 200)">
+    <rect width="80" height="25" fill="url(#brain)" opacity="0.8" rx="12"/>
+    <text x="40" y="17" text-anchor="middle" font-family="system-ui" font-size="11" font-weight="bold" fill="white">Few-shot</text>
+  </g>
+  
+  <g transform="translate(150, 200)">
+    <rect width="80" height="25" fill="url(#text)" opacity="0.8" rx="12"/>
+    <text x="40" y="17" text-anchor="middle" font-family="system-ui" font-size="11" font-weight="bold" fill="white">Chain-of-Thought</text>
+  </g>
+  
+  <g transform="translate(250, 200)">
+    <rect width="80" height="25" fill="#8b5cf6" opacity="0.8" rx="12"/>
+    <text x="40" y="17" text-anchor="middle" font-family="system-ui" font-size="11" font-weight="bold" fill="white">ReAct</text>
+  </g>
+  
+  <!-- Title -->
+  <text x="200" y="40" text-anchor="middle" font-family="system-ui" font-size="20" font-weight="bold" fill="currentColor" opacity="0.9">
+    Prompt Engineering
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="200" y="260" text-anchor="middle" font-family="system-ui" font-size="12" fill="currentColor" opacity="0.7">
+    Designing effective AI conversations
+  </text>
+</svg>

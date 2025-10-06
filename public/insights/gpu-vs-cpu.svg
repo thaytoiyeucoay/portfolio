@@ -1,0 +1,105 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.1" />
+    </linearGradient>
+    <linearGradient id="gpu" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cpu" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="400" height="300" fill="url(#bg)" rx="20"/>
+  
+  <!-- GPU (left side) -->
+  <g transform="translate(50, 80)">
+    <rect width="120" height="80" fill="url(#gpu)" rx="8" opacity="0.9"/>
+    <rect x="10" y="10" width="100" height="60" fill="none" stroke="currentColor" stroke-width="2" opacity="0.5"/>
+    
+    <!-- GPU cores pattern -->
+    <g opacity="0.7">
+      <rect x="15" y="15" width="8" height="8" fill="currentColor"/>
+      <rect x="27" y="15" width="8" height="8" fill="currentColor"/>
+      <rect x="39" y="15" width="8" height="8" fill="currentColor"/>
+      <rect x="51" y="15" width="8" height="8" fill="currentColor"/>
+      <rect x="63" y="15" width="8" height="8" fill="currentColor"/>
+      <rect x="75" y="15" width="8" height="8" fill="currentColor"/>
+      <rect x="87" y="15" width="8" height="8" fill="currentColor"/>
+      <rect x="99" y="15" width="8" height="8" fill="currentColor"/>
+      
+      <rect x="15" y="27" width="8" height="8" fill="currentColor"/>
+      <rect x="27" y="27" width="8" height="8" fill="currentColor"/>
+      <rect x="39" y="27" width="8" height="8" fill="currentColor"/>
+      <rect x="51" y="27" width="8" height="8" fill="currentColor"/>
+      <rect x="63" y="27" width="8" height="8" fill="currentColor"/>
+      <rect x="75" y="27" width="8" height="8" fill="currentColor"/>
+      <rect x="87" y="27" width="8" height="8" fill="currentColor"/>
+      <rect x="99" y="27" width="8" height="8" fill="currentColor"/>
+      
+      <rect x="15" y="39" width="8" height="8" fill="currentColor"/>
+      <rect x="27" y="39" width="8" height="8" fill="currentColor"/>
+      <rect x="39" y="39" width="8" height="8" fill="currentColor"/>
+      <rect x="51" y="39" width="8" height="8" fill="currentColor"/>
+      <rect x="63" y="39" width="8" height="8" fill="currentColor"/>
+      <rect x="75" y="39" width="8" height="8" fill="currentColor"/>
+      <rect x="87" y="39" width="8" height="8" fill="currentColor"/>
+      <rect x="99" y="39" width="8" height="8" fill="currentColor"/>
+      
+      <rect x="15" y="51" width="8" height="8" fill="currentColor"/>
+      <rect x="27" y="51" width="8" height="8" fill="currentColor"/>
+      <rect x="39" y="51" width="8" height="8" fill="currentColor"/>
+      <rect x="51" y="51" width="8" height="8" fill="currentColor"/>
+      <rect x="63" y="51" width="8" height="8" fill="currentColor"/>
+      <rect x="75" y="51" width="8" height="8" fill="currentColor"/>
+      <rect x="87" y="51" width="8" height="8" fill="currentColor"/>
+      <rect x="99" y="51" width="8" height="8" fill="currentColor"/>
+    </g>
+    
+    <text x="60" y="95" text-anchor="middle" font-family="system-ui" font-size="14" font-weight="bold" fill="currentColor">GPU</text>
+    <text x="60" y="110" text-anchor="middle" font-family="system-ui" font-size="10" fill="currentColor" opacity="0.7">High Throughput</text>
+  </g>
+  
+  <!-- CPU (right side) -->
+  <g transform="translate(230, 80)">
+    <rect width="120" height="80" fill="url(#cpu)" rx="8" opacity="0.9"/>
+    <rect x="10" y="10" width="100" height="60" fill="none" stroke="currentColor" stroke-width="2" opacity="0.5"/>
+    
+    <!-- CPU cores (fewer, larger) -->
+    <g opacity="0.7">
+      <rect x="25" y="25" width="20" height="20" fill="currentColor" rx="2"/>
+      <rect x="55" y="25" width="20" height="20" fill="currentColor" rx="2"/>
+      <rect x="85" y="25" width="20" height="20" fill="currentColor" rx="2"/>
+      <rect x="25" y="45" width="20" height="20" fill="currentColor" rx="2"/>
+      <rect x="55" y="45" width="20" height="20" fill="currentColor" rx="2"/>
+      <rect x="85" y="45" width="20" height="20" fill="currentColor" rx="2"/>
+    </g>
+    
+    <text x="60" y="95" text-anchor="middle" font-family="system-ui" font-size="14" font-weight="bold" fill="currentColor">CPU</text>
+    <text x="60" y="110" text-anchor="middle" font-family="system-ui" font-size="10" fill="currentColor" opacity="0.7">Low Latency</text>
+  </g>
+  
+  <!-- VS indicator -->
+  <g transform="translate(200, 120)">
+    <circle r="20" fill="white" opacity="0.9"/>
+    <text x="0" y="6" text-anchor="middle" font-family="system-ui" font-size="16" font-weight="bold" fill="#6366f1">VS</text>
+  </g>
+  
+  <!-- Performance indicators -->
+  <g transform="translate(50, 200)">
+    <text x="60" y="0" text-anchor="middle" font-family="system-ui" font-size="12" fill="currentColor" opacity="0.8">Parallel Computing</text>
+    <rect x="10" y="10" width="100" height="4" fill="url(#gpu)" rx="2"/>
+    <rect x="10" y="10" width="95" height="4" fill="currentColor" opacity="0.3" rx="2"/>
+  </g>
+  
+  <g transform="translate(230, 200)">
+    <text x="60" y="0" text-anchor="middle" font-family="system-ui" font-size="12" fill="currentColor" opacity="0.8">Single Thread</text>
+    <rect x="10" y="10" width="100" height="4" fill="url(#cpu)" rx="2"/>
+    <rect x="10" y="10" width="75" height="4" fill="currentColor" opacity="0.3" rx="2"/>
+  </g>
+</svg>

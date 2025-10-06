@@ -56,4 +56,20 @@ export const posts: Post[] = [
     date: "2025-09-03",
     tags: ["Serving", "vLLM", "TensorRT-LLM"],
   },
+  {
+    title: "Prompt Engineering cho AI",
+    slug: "prompt-engineering",
+    summary:
+      "Kỹ thuật thiết kế prompt hiệu quả: few-shot learning, chain-of-thought, và các pattern phổ biến với LLM.",
+    date: "2025-09-15",
+    tags: ["Prompt", "LLM", "AI"],
+  },
+  {
+    title: "MLOps với Docker & Kubernetes",
+    slug: "mlops-docker-k8s",
+    summary:
+      "Triển khai mô hình ML production-ready: containerization, orchestration, monitoring và CI/CD pipeline.",
+    date: "2025-09-20",
+    tags: ["MLOps", "Docker", "Kubernetes"],
+  },
 ];

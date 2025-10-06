@@ -179,4 +179,274 @@ Serving large models requires efficient KV cache management, batching, and kerne
 Pick vLLM for easy, high-throughput serving; use TensorRT-LLM for low-latency GPU-optimized paths.
 `
   },
+  "prompt-engineering": {
+    title: "Prompt Engineering cho AI",
+    content: `# Prompt Engineering cho AI
+
+Prompt engineering là nghệ thuật thiết kế đầu vào để AI models hoạt động hiệu quả nhất. Đây là skill quan trọng trong kỷ nguyên LLM.
+
+## Các kỹ thuật cơ bản
+
+### 1. Zero-shot Prompting
+Đưa ra instruction trực tiếp mà không có example:
+\`\`\`
+"Phân loại email sau đây: spam hoặc không spam"
+\`\`\`
+
+### 2. Few-shot Learning
+Cung cấp một vài ví dụ trước khi yêu cầu:
+\`\`\`
+Email: "Chúc mừng! Bạn đã thắng 1 tỷ đồng..." → Spam
+Email: "Họp team lúc 2h chiều nay" → Không spam
+Email: "Click link này để nhận quà..." → ?
+\`\`\`
+
+### 3. Chain-of-Thought (CoT)
+Yêu cầu AI suy nghĩ từng bước:
+\`\`\`
+"Giải bài toán này từng bước:
+Bước 1: Xác định dữ liệu đã cho
+Bước 2: Áp dụng công thức
+Bước 3: Tính toán"
+\`\`\`
+
+## Best Practices
+
+### Cấu trúc prompt rõ ràng
+- **Role**: "Bạn là chuyên gia AI..."  
+- **Context**: "Dựa trên dữ liệu sau..."
+- **Task**: "Hãy phân tích và đưa ra..."
+- **Format**: "Trả lời theo định dạng JSON"
+
+### Các ký tự đặc biệt
+- \`###\` để phân tách sections
+- \`"""\` để bao quanh văn bản cần xử lý
+- \`[SYSTEM]\`, \`[USER]\`, \`[ASSISTANT]\` cho role-based prompts
+
+## Advanced Techniques
+
+### ReAct (Reasoning + Acting)
+\`\`\`
+Thought: Tôi cần tìm thông tin về dân số Việt Nam
+Action: search("dân số Việt Nam 2024")
+Observation: Kết quả cho thấy...
+Thought: Bây giờ tôi có đủ thông tin để trả lời
+\`\`\`
+
+### Tree of Thoughts
+Khám phá nhiều hướng suy nghĩ song song để tìm giải pháp tối ưu.
+
+## Lưu ý khi implement
+
+### 1. Context Length
+- Theo dõi token limit của model
+- Sử dụng sliding window cho văn bản dài
+- Prioritize thông tin quan trọng nhất
+
+### 2. Temperature Settings
+- Low (0.1-0.3): Cho factual tasks
+- Medium (0.5-0.7): Cho creative tasks  
+- High (0.8-1.0): Cho brainstorming
+
+### 3. Testing & Iteration
+- A/B test different prompt versions
+- Measure performance với metrics cụ thể
+- Collect user feedback để cải thiện
+
+## Takeaway
+Prompt engineering không chỉ là viết instruction - đó là thiết kế conversation flow hiệu quả giữa human và AI.
+`
+  },
+  "mlops-docker-k8s": {
+    title: "MLOps với Docker & Kubernetes",
+    content: `# MLOps với Docker & Kubernetes
+
+MLOps pipeline production-ready cần containerization và orchestration để scale và maintain models hiệu quả.
+
+## Docker cho ML Models
+
+### Dockerfile Structure
+\`\`\`dockerfile
+FROM python:3.9-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \\
+    build-essential \\
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first (layer caching)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy model artifacts
+COPY models/ /app/models/
+COPY src/ /app/src/
+
+WORKDIR /app
+EXPOSE 8000
+
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+\`\`\`
+
+### Multi-stage Build
+\`\`\`dockerfile
+# Build stage
+FROM python:3.9 as builder
+RUN pip install --user torch torchvision
+
+# Runtime stage  
+FROM python:3.9-slim
+COPY --from=builder /root/.local /root/.local
+\`\`\`
+
+## Kubernetes Deployment
+
+### Deployment YAML
+\`\`\`yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-model-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ml-model-api
+  template:
+    metadata:
+      labels:
+        app: ml-model-api
+    spec:
+      containers:
+      - name: api
+        image: ml-model:v1.0.0
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "2Gi" 
+            cpu: "1000m"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+\`\`\`
+
+### Service & Ingress
+\`\`\`yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-model-service
+spec:
+  selector:
+    app: ml-model-api
+  ports:
+  - port: 80
+    targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ml-model-ingress
+spec:
+  rules:
+  - host: ml-api.company.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ml-model-service
+            port:
+              number: 80
+\`\`\`
+
+## Monitoring & Observability
+
+### Metrics Collection
+- **Prometheus** cho system metrics
+- **Grafana** cho visualization
+- **Custom metrics**: prediction latency, accuracy, drift detection
+
+### Logging Strategy
+\`\`\`python
+import logging
+import json
+
+logger = logging.getLogger(__name__)
+
+def log_prediction(input_data, prediction, confidence, latency):
+    log_entry = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "prediction": prediction,
+        "confidence": confidence,
+        "latency_ms": latency,
+        "input_hash": hashlib.md5(str(input_data).encode()).hexdigest()
+    }
+    logger.info(json.dumps(log_entry))
+\`\`\`
+
+## CI/CD Pipeline
+
+### GitLab CI Example
+\`\`\`yaml
+stages:
+  - test
+  - build
+  - deploy
+
+test:
+  stage: test
+  script:
+    - pytest tests/
+    - python -m pytest --cov=src tests/
+
+build:
+  stage: build
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+
+deploy:
+  stage: deploy
+  script:
+    - kubectl set image deployment/ml-model-api api=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - kubectl rollout status deployment/ml-model-api
+  only:
+    - main
+\`\`\`
+
+## Best Practices
+
+### 1. Model Versioning
+- Semantic versioning cho models
+- Model registry (MLflow, DVC)
+- A/B testing infrastructure
+
+### 2. Resource Management
+- GPU node pools cho training
+- CPU nodes cho inference
+- Horizontal Pod Autoscaler based on metrics
+
+### 3. Security
+- Image scanning với Trivy/Clair
+- Secret management với Vault
+- Network policies để isolate workloads
+
+## Takeaway
+MLOps success = reliable containerization + robust orchestration + comprehensive monitoring + automated CI/CD.
+`
+  },
 };

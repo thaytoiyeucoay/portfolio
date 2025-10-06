@@ -4,22 +4,31 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { FloatingGem } from "@/components/ui/floating-3d";
+import { AnimatedIcon } from "@/components/ui/animated-icon";
+import { Brain, Code2, Zap } from "lucide-react";
 
 export function AboutSection() {
   const skills = ["Python", "PyTorch", "TensorFlow", "LangChain", "Next.js", "React", "Node.js", "OpenAI", "RAG", "Vector DB"];
 
   return (
-    <section id="about" className="mt-16 scroll-mt-24">
+    <section id="about" className="mt-16 scroll-mt-24 relative">
+      {/* Floating 3D Element */}
+      <div className="absolute top-0 right-0 -z-10 opacity-20">
+        <FloatingGem />
+      </div>
+      
       <motion.h2
         initial={{ opacity: 0, y: 8 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-100px" }}
         transition={{ duration: 0.5 }}
-        className="mb-6 text-2xl font-semibold"
+        className="mb-6 text-2xl font-semibold flex items-center gap-3"
       >
+        <AnimatedIcon icon={Brain} animation="pulse" color="purple" size={32} />
         About Me
       </motion.h2>
-      <Card className="bg-background/60 backdrop-blur-xl">
+      <Card className="bg-background/60 backdrop-blur-xl border-white/10 shadow-2xl">
         <CardHeader>
           <div className="flex items-center gap-4">
             <Avatar className="size-16 ring-2 ring-primary/30">
@@ -72,26 +81,26 @@ export function AboutSection() {
             </div>
             <div className="rounded-lg border p-3">
               <div className="text-xs text-muted-foreground">LinkedIn</div>
-              <div className="font-medium"><a className="underline underline-offset-4" href="https://linkedin.com/in/your-id" target="_blank" rel="noreferrer">linkedin.com/in/your-id</a></div>
+              <div className="font-medium"><a className="underline underline-offset-4" href="https://www.linkedin.com/in/khanhduyhust160804" target="_blank" rel="noreferrer">linkedin.com/in/your-id</a></div>
             </div>
             <div className="rounded-lg border p-3">
               <div className="text-xs text-muted-foreground">GitHub</div>
-              <div className="font-medium"><a className="underline underline-offset-4" href="https://github.com/your-id" target="_blank" rel="noreferrer">github.com/your-id</a></div>
+              <div className="font-medium"><a className="underline underline-offset-4" href="https://github.com/thaytoiyeucoay" target="_blank" rel="noreferrer">github.com/your-id</a></div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
             <div className="rounded-lg border p-3">
               <div className="text-xs text-muted-foreground">Experience</div>
-              <div className="font-medium">4+ năm Dev / 2+ năm AI</div>
+              <div className="font-medium">Fresher</div>
             </div>
             <div className="rounded-lg border p-3">
               <div className="text-xs text-muted-foreground">Sở trường</div>
-              <div className="font-medium">LLM, RAG, CV/NLP</div>
+              <div className="font-medium">LLM, RAG, CV/NLP, Developer</div>
             </div>
             <div className="rounded-lg border p-3">
               <div className="text-xs text-muted-foreground">Stack</div>
-              <div className="font-medium">PyTorch, Next.js, Cloud</div>
+              <div className="font-medium">PyTorch, Tensorflow, Lang Chain, React,... </div>
             </div>
           </div>
 

@@ -21,33 +21,77 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
-  title: "Khánh Duy Bùi — AI Engineer & Developer",
+  title: {
+    default: "Khánh Duy Bùi — AI Engineer & Full-Stack Developer Portfolio",
+    template: "%s | Khánh Duy Bùi"
+  },
   description:
-    "AI Engineer & Developer building intelligent systems with data & code. Portfolio with clean UI and performance.",
-  authors: [{ name: "Duy Bùi" }],
+    "Khánh Duy Bùi - AI Engineer & Full-Stack Developer. Student at Hanoi University of Science and Technology. Specialized in LLM, RAG, CV/NLP, React, Next.js, PyTorch, TensorFlow. Building intelligent systems with modern web technologies.",
+  authors: [{ name: "Khánh Duy Bùi", url: "https://linkedin.com/in/khanhduyhust160804" }],
+  creator: "Khánh Duy Bùi",
+  publisher: "Khánh Duy Bùi",
   keywords: [
-    "AI Engineer",
-    "Developer",
-    "Machine Learning",
+    "Khánh Duy Bùi",
+    "AI Engineer Vietnam",
+    "Full-Stack Developer",
+    "Machine Learning Engineer",
     "Deep Learning",
-    "Next.js",
+    "LLM Developer",
+    "RAG Systems",
+    "Computer Vision",
+    "NLP Engineer",
+    "React Developer",
+    "Next.js Developer",
+    "PyTorch",
+    "TensorFlow",
+    "LangChain",
     "Portfolio",
+    "Hanoi University Science Technology",
+    "Vietnam AI Developer",
+    "Chatbot RAG",
+    "Emotion Detection",
+    "Cat Dog Classifier"
   ],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   openGraph: {
     type: "website",
+    locale: "en_US",
     url: "/",
-    title: "Khánh Duy Bùi — AI Engineer & Developer",
+    siteName: "Khánh Duy Bùi Portfolio",
+    title: "Khánh Duy Bùi — AI Engineer & Full-Stack Developer",
     description:
-      "AI Engineer & Developer building intelligent systems with data & code.",
-    images: [{ url: "/opengraph-image" }],
+      "AI Engineer & Full-Stack Developer building intelligent systems. Student at Hanoi University of Science and Technology. Specialized in LLM, RAG, React, PyTorch.",
+    images: [{
+      url: "/opengraph-image.png",
+      width: 1200,
+      height: 630,
+      alt: "Khánh Duy Bùi - AI Engineer & Developer Portfolio"
+    }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Khánh Duy Bùi — AI Engineer & Developer",
+    title: "Khánh Duy Bùi — AI Engineer & Full-Stack Developer",
     description:
-      "AI Engineer & Developer building intelligent systems with data & code.",
-    images: ["/opengraph-image"],
+      "AI Engineer & Full-Stack Developer. Student at HUST. Specialized in LLM, RAG, CV/NLP, React, PyTorch.",
+    images: ["/opengraph-image.png"],
+    creator: "@khanhduybui"
   },
+  alternates: {
+    canonical: "/",
+  },
+  other: {
+    "google-site-verification": "your-google-verification-code"
+  }
 };
 
 export default function RootLayout({
@@ -56,7 +100,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-dvh bg-background text-foreground`}
       >

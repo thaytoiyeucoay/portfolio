@@ -9,9 +9,11 @@ import { projects as allProjects } from "@/data/projects";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ExternalLink, Smile, Frown, Angry, Heart, Laugh, Meh, AlertTriangle, CheckCircle2, XCircle, PartyPopper, Zap, Brain, Cloud, Star, ThumbsUp, ThumbsDown, Tag, Bot, Github, Link as LinkIcon, BookOpen } from "lucide-react";
+import { ExternalLink, Smile, Frown, Angry, Heart, Laugh, Meh, AlertTriangle, CheckCircle2, XCircle, PartyPopper, Zap, Brain, Cloud, Star, ThumbsUp, ThumbsDown, Tag, Bot, Github, Link as LinkIcon, BookOpen, Layers } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { FloatingCube } from "@/components/ui/floating-3d";
+import { AnimatedIcon } from "@/components/ui/animated-icon";
 
 const categories = ["All", "AI", "Web", "Data"] as const;
 
@@ -168,14 +170,20 @@ export function ProjectsSection() {
   };
 
   return (
-    <section id="projects" className="mt-16 scroll-mt-24">
+    <section id="projects" className="mt-16 scroll-mt-24 relative">
+      {/* Floating 3D Element */}
+      <div className="absolute -top-10 right-0 -z-10 opacity-15">
+        <FloatingCube />
+      </div>
+      
       <motion.h2
         initial={{ opacity: 0, y: 8 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-100px" }}
         transition={{ duration: 0.5 }}
-        className="mb-6 text-2xl font-semibold"
+        className="mb-6 text-2xl font-semibold flex items-center gap-3"
       >
+        <AnimatedIcon icon={Layers} animation="spin" color="blue" size={32} />
         Projects
       </motion.h2>
 
@@ -202,25 +210,31 @@ export function ProjectsSection() {
                   exit={{ opacity: 0, scale: 0.98, y: 4 }}
                 >
                   <div>
-                    <Card className="relative h-full overflow-hidden bg-background border border-white/10 rounded-2xl shadow-lg transition-all hover:ring-2 hover:ring-emerald-400/40 hover:shadow-emerald-500/10">
-                      {/* Persistent action button at top-right */}
-                      <div className="absolute right-3 top-3 z-10">
-                        <Button asChild size="sm" variant="secondary" className="gap-2">
-                          <a href="/emotion">
-                            Full Project <ExternalLink className="size-4" />
-                          </a>
-                        </Button>
-                      </div>
-                      <div className="relative h-56 w-full overflow-hidden rounded-md">
+                    <Card className="relative h-full overflow-hidden bg-gradient-to-br from-background to-background/80 border border-white/10 rounded-2xl shadow-xl backdrop-blur-sm transition-all hover:ring-2 hover:ring-emerald-400/40 hover:shadow-emerald-500/20 group">
+                      {/* Project image with consistent aspect ratio */}
+                      <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20">
                         <img
                           src="/emotiondetection.png"
                           alt="Emotion Detection"
-                          className="object-cover transition-transform duration-200 group-hover:scale-105"
+                          className="h-full w-full object-contain p-6 transition-transform duration-200 group-hover:scale-105"
                         />
+                        {/* Status badge */}
+                        <div className="absolute left-3 top-3">
+                          <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                            LIVE
+                          </Badge>
+                        </div>
                       </div>
-                      <CardHeader>
-                        <CardTitle className="text-base">Emotion Detection</CardTitle>
-                        <CardDescription>Powered by Hugging Face Inference API</CardDescription>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg font-semibold">Emotion Detection</CardTitle>
+                        <CardDescription className="text-sm text-muted-foreground">
+                          Real-time text emotion analysis using Hugging Face Transformers API
+                        </CardDescription>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          <Badge variant="outline" className="text-xs">Hugging Face</Badge>
+                          <Badge variant="outline" className="text-xs">NLP</Badge>
+                          <Badge variant="outline" className="text-xs">React</Badge>
+                        </div>
                       </CardHeader>
                       <CardContent className="space-y-3">
                         <Textarea
@@ -248,6 +262,20 @@ export function ProjectsSection() {
                             ))}
                           </div>
                         )}
+                        
+                        {/* Action buttons */}
+                        <div className="flex items-center justify-between pt-3 border-t border-white/10 mt-4">
+                          <Button asChild size="sm" variant="outline" className="gap-2">
+                            <a href="/emotion" target="_blank">
+                              <ExternalLink className="size-4" /> Try Live
+                            </a>
+                          </Button>
+                          <Button asChild size="sm" variant="ghost" className="gap-2">
+                            <a href="https://github.com/thaytoiyeucoay" target="_blank">
+                              <Github className="size-4" />
+                            </a>
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
@@ -263,25 +291,33 @@ export function ProjectsSection() {
                   exit={{ opacity: 0, scale: 0.98, y: 4 }}
                 >
                   <div>
-                    <Card className="relative h-full overflow-hidden bg-background border border-white/10 rounded-xl shadow-sm">
-                      {/* Persistent action button at top-right */}
-                      <div className="absolute right-3 top-3 z-10">
-                        <Button asChild size="sm" variant="secondary" className="gap-2">
-                          <a href="/chatbot-rag">
-                            Full Project <ExternalLink className="size-4" />
-                          </a>
-                        </Button>
-                      </div>
-                      <div className="relative h-56 w-full overflow-hidden rounded-md">
+                    <Card className="relative h-full overflow-hidden bg-gradient-to-br from-background to-background/80 border border-white/10 rounded-2xl shadow-xl backdrop-blur-sm transition-all hover:ring-2 hover:ring-blue-400/40 hover:shadow-blue-500/20 group">
+                      {/* Project image with consistent aspect ratio */}
+                      <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
                         <img
                           src="/projects/ai-chatbot.svg"
                           alt="Chatbot RAG"
-                          className="object-contain p-6 transition-transform duration-200 group-hover:scale-105"
+                          className="h-full w-full object-contain p-6 transition-transform duration-200 group-hover:scale-105"
                         />
+                        {/* Status badge */}
+                        <div className="absolute left-3 top-3">
+                          <Badge variant="secondary" className="bg-blue-500/10 text-blue-400 border-blue-500/20">
+                            LIVE
+                          </Badge>
+                        </div>
                       </div>
-                      <CardHeader>
-                        <CardTitle className="text-base flex items-center gap-2"><Bot className="size-4" /> Chatbot RAG</CardTitle>
-                        <CardDescription>Hỏi đáp theo tài liệu (UI-only)</CardDescription>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                          <Bot className="size-5" /> Chatbot RAG
+                        </CardTitle>
+                        <CardDescription className="text-sm text-muted-foreground">
+                          Document-based question answering system with RAG architecture
+                        </CardDescription>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          <Badge variant="outline" className="text-xs">RAG</Badge>
+                          <Badge variant="outline" className="text-xs">LLM</Badge>
+                          <Badge variant="outline" className="text-xs">Vector DB</Badge>
+                        </div>
                       </CardHeader>
                       <CardContent className="space-y-3">
                         <Textarea
@@ -308,6 +344,20 @@ export function ProjectsSection() {
                             )}
                           </div>
                         )}
+                        
+                        {/* Action buttons */}
+                        <div className="flex items-center justify-between pt-3 border-t border-white/10 mt-4">
+                          <Button asChild size="sm" variant="outline" className="gap-2">
+                            <a href="/chatbot-rag" target="_blank">
+                              <ExternalLink className="size-4" /> Try Live
+                            </a>
+                          </Button>
+                          <Button asChild size="sm" variant="ghost" className="gap-2">
+                            <a href="https://github.com/thaytoiyeucoay" target="_blank">
+                              <Github className="size-4" />
+                            </a>
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
@@ -323,29 +373,30 @@ export function ProjectsSection() {
                   exit={{ opacity: 0, scale: 0.98, y: 4 }}
                 >
                   <div>
-                    <Card className="relative h-full overflow-hidden bg-background border border-white/10 rounded-xl shadow-sm">
-                      {/* Persistent action button at top-right */}
-                      <div className="absolute right-3 top-3 z-10">
-                        <Button asChild size="sm" variant="secondary" className="gap-2">
-                          <a href="/cat-dog">
-                            Full Project <ExternalLink className="size-4" />
-                          </a>
-                        </Button>
-                      </div>
-                      <div className="relative h-56 w-full overflow-hidden rounded-md bg-gradient-to-b from-muted/40 to-transparent">
+                    <Card className="relative h-full overflow-hidden bg-gradient-to-br from-background to-background/80 border border-white/10 rounded-2xl shadow-xl backdrop-blur-sm transition-all hover:ring-2 hover:ring-purple-400/40 hover:shadow-purple-500/20 group">
+                      {/* Project image with consistent aspect ratio */}
+                      <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20">
                         <img
                           src="/projects/cat-dog.svg"
-                          alt="Cat vs Dog"
-                          className="object-cover transition-transform duration-200 group-hover:scale-105"
+                          alt="Cat vs Dog Classifier"
+                          className="h-full w-full object-contain p-6 transition-transform duration-200 group-hover:scale-105"
                         />
+                        {/* Status badge */}
+                        <div className="absolute left-3 top-3">
+                          <Badge variant="secondary" className="bg-purple-500/10 text-purple-400 border-purple-500/20">
+                            LIVE
+                          </Badge>
+                        </div>
                       </div>
-                      <CardHeader>
-                        <CardTitle className="text-base">Cat vs Dog Classifier</CardTitle>
-                        <CardDescription>MobileNet chạy tại client. Tải ảnh và xem xác suất dự đoán.</CardDescription>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          <Badge variant="outline">On-device</Badge>
-                          <Badge variant="outline">TF.js</Badge>
-                          <Badge variant="outline">MobileNet v2</Badge>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg font-semibold">Cat vs Dog Classifier</CardTitle>
+                        <CardDescription className="text-sm text-muted-foreground">
+                          Real-time image classification using TensorFlow.js and MobileNet running in browser
+                        </CardDescription>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          <Badge variant="outline" className="text-xs">TensorFlow.js</Badge>
+                          <Badge variant="outline" className="text-xs">MobileNet</Badge>
+                          <Badge variant="outline" className="text-xs">Computer Vision</Badge>
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-4">
@@ -410,6 +461,20 @@ export function ProjectsSection() {
                             </div>
                           </div>
                         </div>
+                        
+                        {/* Action buttons */}
+                        <div className="flex items-center justify-between pt-3 border-t border-white/10 mt-4">
+                          <Button asChild size="sm" variant="outline" className="gap-2">
+                            <a href="/cat-dog" target="_blank">
+                              <ExternalLink className="size-4" /> Try Live
+                            </a>
+                          </Button>
+                          <Button asChild size="sm" variant="ghost" className="gap-2">
+                            <a href="https://github.com/thaytoiyeucoay" target="_blank">
+                              <Github className="size-4" />
+                            </a>
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
@@ -424,7 +489,7 @@ export function ProjectsSection() {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.98, y: 4 }}
                   >
-                    <Card className="relative h-full overflow-hidden bg-background border border-white/10 rounded-xl shadow-lg">
+                    <Card className="relative h-full overflow-hidden bg-gradient-to-br from-background to-background/80 border border-white/10 rounded-2xl shadow-xl backdrop-blur-sm transition-all hover:ring-2 hover:ring-white/20 hover:shadow-white/5 group">
                         {/* Status badge */}
                         {p.status && (
                           <div className="absolute left-3 top-3 z-10">
