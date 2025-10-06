@@ -14,6 +14,7 @@ import { ExternalLink, Paperclip, Upload, Search, Send, Sparkles, FileText, Sett
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypePrism from "rehype-prism-plus";
+import Image from "next/image";
 
 export default function ChatbotRagPage() {
   // Chat state (UI-only)
@@ -29,6 +30,7 @@ export default function ChatbotRagPage() {
   ]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [allowWeb, setAllowWeb] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
@@ -55,6 +57,53 @@ export default function ChatbotRagPage() {
     const blacklist = new Set(["Microsoft","Google","Vietnamese","Vietnam","Online","Natural","Desktop","Voice","Standard","Neural"]);
     const cand = cleaned.split(/\s+/).filter(Boolean).find(tok => !blacklist.has(tok) && /[A-Za-zÀ-ỹ]/.test(tok));
     return cand || "";
+  }
+
+  async function onAskWeb() {
+    if (!input.trim()) return;
+    setSending(true);
+    const userContent = input + " (yêu cầu tìm kiếm web)";
+    const userMsg = { id: crypto.randomUUID(), role: "user" as const, content: userContent };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userContent, forceWeb: true, allowWeb })
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) throw new Error(data?.message || "Chat API error");
+
+      const payload = data.data as {
+        answer: string;
+        sources: Array<{ title: string; content: string; source: string; similarity: number }>;
+        searchUsed: boolean;
+      };
+      const citations = (payload.sources || []).map((s) => ({
+        title: s.title,
+        url: /^https?:\/\//i.test(s.source) ? s.source : undefined,
+        snippet: s.content,
+      }));
+      const assistantMsg = {
+        id: crypto.randomUUID(),
+        role: "assistant" as const,
+        content: payload.answer,
+        citations,
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
+    } catch (e) {
+      console.error(e);
+      const errMsg = {
+        id: crypto.randomUUID(),
+        role: "assistant" as const,
+        content: "Xin lỗi anh, em gặp lỗi khi tìm kiếm web. Anh thử lại giúp em với nhé. 🙏",
+      };
+      setMessages((prev) => [...prev, errMsg]);
+    } finally {
+      setSending(false);
+    }
   }
 
   function friendlyVoiceName(v: SpeechSynthesisVoice, withVariant = true) {
@@ -259,7 +308,7 @@ export default function ChatbotRagPage() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userContent })
+        body: JSON.stringify({ message: userContent, allowWeb })
       });
       const data = await res.json();
       if (!res.ok || !data?.success) throw new Error(data?.message || "Chat API error");
@@ -317,6 +366,13 @@ export default function ChatbotRagPage() {
     });
   }
 
+  function copyCode(code: string) {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopiedCode(code);
+      setTimeout(() => setCopiedCode(null), 1200);
+    });
+  }
+
   return (
     <div className="relative container mx-auto max-w-6xl px-4 py-10">
       <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -361,11 +417,14 @@ export default function ChatbotRagPage() {
               <CardDescription>Tải tài liệu để làm nguồn tri thức cho RAG.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-center gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
                 <Input type="file" className="hidden" multiple ref={fileInputRef} onChange={(e) => onUploadFiles(e.target.files)} />
                 <Button size="sm" onClick={onAttach}><Upload className="mr-2 size-4" /> Tải file</Button>
                 <Button size="sm" variant="outline"><LinkIcon className="mr-2 size-4" /> Thêm URL</Button>
                 <Button size="sm" variant="ghost" title="Re-index"><RefreshCw className="size-4" /></Button>
+                <Button size="sm" variant="secondary" onClick={initRag} title="Khởi tạo tri thức cá nhân từ hồ sơ của anh">
+                  <Sparkles className="mr-2 size-4" /> Khởi tạo tri thức
+                </Button>
               </div>
               <div className="rounded-md border border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden">
                 <div className="flex items-center justify-between px-3 py-2 text-xs text-muted-foreground bg-white/5">
@@ -448,13 +507,14 @@ export default function ChatbotRagPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-base flex items-center gap-2">
-                    <Sparkles className="size-4" /> Trợ lý RAG
+                    <Sparkles className="size-4" /> Trợ lý ảo của Khánh Duy Bùi
                   </CardTitle>
                   <CardDescription>Hỏi đáp dựa trên nguồn kiến thức đã tải lên.</CardDescription>
                 </div>
-                <div className="hidden gap-2 sm:flex">
-                  <Button size="sm" variant="outline"><Search className="mr-2 size-4" /> Chỉ tìm kiếm</Button>
-                  <Button size="sm" variant="secondary"><Plus className="mr-2 size-4" /> Prompt mới</Button>
+                <div className="hidden gap-2 sm:flex items-center">
+                  <Button size="sm" variant={allowWeb ? "default" : "outline"} onClick={() => setAllowWeb((v) => !v)}>
+                    <Search className="mr-2 size-4" /> {allowWeb ? "Web search: Bật" : "Web search: Tắt"}
+                  </Button>
                 </div>
               </div>
             </CardHeader>
@@ -463,17 +523,17 @@ export default function ChatbotRagPage() {
               <div className="h-[540px] w-full overflow-auto p-4">
                 <div className="mx-auto max-w-3xl space-y-4">
                   {messages.map((m) => (
-                    <div key={m.id} className={cn("flex w-full gap-3 animate-in slide-in-from-bottom-2 duration-300", m.role === "user" ? "justify-end" : "justify-start")}>
+                    <div key={m.id} className={cn("flex w-full gap-3", m.role === "user" ? "justify-end" : "justify-start")}>
                       {m.role === "assistant" && (
                         <div className="mt-1">
                           <ChatAvatar talking={false} />
                         </div>
                       )}
                       <div className={cn(
-                        "max-w-[82%] rounded-2xl border p-4 text-sm shadow-lg backdrop-blur-sm transition-all duration-200 hover:shadow-xl",
+                        "max-w-[82%] rounded-2xl border p-3 text-sm shadow-sm backdrop-blur-sm transition-colors",
                         m.role === "assistant"
-                          ? "border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 via-teal-500/5 to-emerald-500/10 hover:from-emerald-500/10 hover:to-teal-500/15"
-                          : "border-blue-500/20 bg-gradient-to-br from-blue-500/5 via-indigo-500/5 to-blue-500/10 hover:from-blue-500/10 hover:to-indigo-500/15"
+                          ? "border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-teal-500/10"
+                          : "border-sky-500/20 bg-gradient-to-br from-sky-500/10 to-indigo-500/10"
                       )}>
                         <div className="prose prose-invert max-w-none whitespace-pre-wrap leading-relaxed [&_*]:break-words">{m.content}</div>
                         {m.citations && m.citations.length > 0 && (
@@ -481,16 +541,16 @@ export default function ChatbotRagPage() {
                             <div className="text-xs font-medium text-muted-foreground">Trích dẫn</div>
                             <div className="grid gap-2 sm:grid-cols-2">
                               {m.citations.map((c, i) => (
-                                <div key={i} className="rounded-md border border-white/10 bg-white/5 backdrop-blur-sm p-3 hover:bg-white/10 transition-all duration-200">
+                                <div key={i} className="rounded-md border border-white/10 p-3">
                                   <div className="mb-1 flex items-center gap-2 text-xs font-medium">
-                                    <FileText className="size-4 text-emerald-400" /> {c.title}
+                                    <FileText className="size-4" /> {c.title}
                                   </div>
                                   {c.snippet && (
                                     <div className="text-xs text-muted-foreground line-clamp-3">{c.snippet}</div>
                                   )}
                                   {c.url && (
                                     <div className="mt-2 text-xs">
-                                      <a className="inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 underline decoration-dotted transition-colors" href={c.url} target="_blank" rel="noreferrer">
+                                      <a className="inline-flex items-center gap-1 underline decoration-dotted" href={c.url} target="_blank" rel="noreferrer">
                                         Mở nguồn <ExternalLink className="size-3" />
                                       </a>
                                     </div>
@@ -531,9 +591,7 @@ export default function ChatbotRagPage() {
                         </div>
                       </div>
                       {m.role === "user" && (
-                        <div className="mt-1">
-                          <UserAvatar />
-                        </div>
+                        <div className="mt-1 grid h-7 w-7 place-items-center rounded-full bg-sky-500/15 text-[10px] ring-1 ring-sky-500/30">U</div>
                       )}
                     </div>
                   ))}
@@ -559,13 +617,13 @@ export default function ChatbotRagPage() {
               </div>
 
               {/* Composer */}
-              <div className="sticky bottom-0 border-t border-white/10 bg-white/5 backdrop-blur-md p-3 shadow-lg">
+              <div className="sticky bottom-0 border-t border-white/10 bg-background/60 p-3 backdrop-blur supports-[backdrop-filter]:bg-background/50">
                 <div className="mx-auto max-w-3xl">
-                  <div className="flex items-end gap-2 rounded-full border border-white/10 bg-white/10 backdrop-blur-md p-1.5 shadow-lg">
+                  <div className="flex items-end gap-2 rounded-full border border-white/10 bg-background/80 p-1.5 shadow-sm">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-9 w-9" onClick={onAttach}>
+                          <Button size="icon" variant="ghost" className="h-9 w-9 rounded-xl" onClick={onAttach} aria-label="Đính kèm">
                             <Paperclip className="size-4" />
                           </Button>
                         </TooltipTrigger>
@@ -573,20 +631,27 @@ export default function ChatbotRagPage() {
                       </Tooltip>
                     </TooltipProvider>
                     <Input type="file" className="hidden" multiple ref={fileInputRef} onChange={(e) => onUploadFiles(e.target.files)} />
-                    <Textarea
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      placeholder="Hỏi tôi về Khánh Duy hoặc tải tài liệu để phân tích..."
-                      rows={2}
-                      className="min-h-[44px] flex-1 resize-none rounded-full bg-transparent px-3"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          if (!disabled) onAsk();
-                        }
-                      }}
-                    />
-                    <Button className="h-9 shrink-0 rounded-full" onClick={onAsk} disabled={disabled}>
+                    <div className="relative flex-1">
+                      <Textarea
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder="Hỏi tôi về Khánh Duy hoặc tải tài liệu để phân tích..."
+                        rows={2}
+                        className="peer min-h-[44px] w-full resize-none rounded-full bg-black/10 px-4 py-2 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-emerald-400/50 transition"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            if (!disabled) onAsk();
+                          }
+                        }}
+                      />
+                      <div className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-r from-emerald-400/0 via-emerald-400/0 to-sky-400/0 peer-focus:from-emerald-400/10 peer-focus:to-sky-400/10" />
+                    </div>
+                    <Button
+                      className="h-9 shrink-0 rounded-full bg-gradient-to-r from-emerald-500 to-sky-500 text-white hover:from-emerald-400 hover:to-sky-400"
+                      onClick={onAsk}
+                      disabled={disabled}
+                    >
                       {sending ? "Đang gửi..." : (
                         <span className="inline-flex items-center gap-2"><Send className="size-4" /><span className="hidden sm:inline">Gửi</span></span>
                       )}
@@ -599,7 +664,7 @@ export default function ChatbotRagPage() {
           </Card>
 
           {/* Tips */}
-          <Card className="border-white/10 backdrop-blur-md bg-white/5 shadow-xl">
+          <Card className="border-white/10">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2"><Info className="size-4" /> Gợi ý sử dụng</CardTitle>
               <CardDescription>Một vài câu hỏi mẫu để bắt đầu.</CardDescription>
@@ -617,7 +682,7 @@ export default function ChatbotRagPage() {
                 ))}
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
       </div>
     </div>
@@ -626,27 +691,15 @@ export default function ChatbotRagPage() {
 
 function ChatAvatar({ talking = false }: { talking?: boolean }) {
   return (
-    <div className="relative h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 p-0.5 ring-2 ring-emerald-500/30 shadow-lg">
-      <div className="h-full w-full rounded-full bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-900 dark:to-emerald-800 flex items-center justify-center overflow-hidden">
-        <svg viewBox="0 0 24 24" className="h-5 w-5 text-emerald-600 dark:text-emerald-300">
-          <path fill="currentColor" d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 7.5V8.5C15 9.6 14.1 10.5 13 10.5S11 9.6 11 8.5V7.5L5 7V9C5 10.1 5.9 11 7 11V20C7 21.1 7.9 22 9 22H15C16.1 22 17 21.1 17 20V11C18.1 11 19 10.1 19 9H21ZM13.5 7.75C13.5 8.17 13.17 8.5 12.75 8.5S12 8.17 12 7.75 12.33 7 12.75 7 13.5 7.33 13.5 7.75Z"/>
-        </svg>
-        {talking && (
-          <div className="absolute inset-0 rounded-full animate-ping bg-emerald-400/30" />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function UserAvatar() {
-  return (
-    <div className="relative h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 p-0.5 ring-2 ring-blue-500/30 shadow-lg">
-      <div className="h-full w-full rounded-full bg-gradient-to-br from-blue-50 to-white dark:from-blue-900 dark:to-blue-800 flex items-center justify-center overflow-hidden">
-        <svg viewBox="0 0 24 24" className="h-5 w-5 text-blue-600 dark:text-blue-300">
-          <path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-        </svg>
-      </div>
+    <div className="relative h-7 w-7 shrink-0 rounded-full bg-emerald-500/15 ring-1 ring-emerald-500/30 grid place-items-center overflow-hidden">
+      <svg viewBox="0 0 40 40" className="h-6 w-6">
+        <circle cx="20" cy="20" r="18" fill="transparent" stroke="currentColor" strokeOpacity="0.25" />
+        {/* eyes */}
+        <circle cx="14" cy="17" r="2" fill="currentColor" />
+        <circle cx="26" cy="17" r="2" fill="currentColor" />
+        {/* mouth */}
+        <rect x="14" y="24" width="12" height="3" rx="1.5" className={talking ? "fill-current animate-pulse" : "fill-current"} />
+      </svg>
     </div>
   );
 }

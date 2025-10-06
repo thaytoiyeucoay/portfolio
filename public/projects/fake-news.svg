@@ -1,0 +1,22 @@
+<svg width="512" height="288" viewBox="0 0 512 288" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="288" rx="20" fill="#0b1220"/>
+  <g filter="url(#glow1)">
+    <circle cx="420" cy="84" r="42" fill="#facc15" fill-opacity="0.14"/>
+  </g>
+  <rect x="48" y="48" width="320" height="192" rx="12" fill="#0f172a" stroke="#1f2937"/>
+  <rect x="64" y="68" width="160" height="12" rx="6" fill="#38bdf8"/>
+  <rect x="64" y="92" width="264" height="10" rx="5" fill="#94a3b8"/>
+  <rect x="64" y="110" width="240" height="10" rx="5" fill="#94a3b8"/>
+  <rect x="64" y="128" width="220" height="10" rx="5" fill="#94a3b8"/>
+  <rect x="64" y="166" width="96" height="18" rx="9" fill="#10b981"/>
+  <rect x="168" y="166" width="96" height="18" rx="9" fill="#f97316"/>
+  <g transform="translate(380,60)">
+    <circle cx="36" cy="36" r="30" stroke="#facc15" stroke-width="4"/>
+    <text x="36" y="45" font-family="Inter,system-ui,Arial" font-size="36" text-anchor="middle" fill="#facc15">?</text>
+  </g>
+  <defs>
+    <filter id="glow1" x="340" y="4" width="160" height="160" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+</svg>
