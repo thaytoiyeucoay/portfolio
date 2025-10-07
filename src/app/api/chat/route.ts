@@ -13,7 +13,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('Creating RAGService...'); // Debug log
     const ragService = new RAGService();
+    console.log('Querying RAGService...'); // Debug log
     const response = await ragService.query(message, { forceWeb: !!forceWeb, allowWeb: !!allowWeb });
 
     return NextResponse.json({

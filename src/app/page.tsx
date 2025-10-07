@@ -8,6 +8,8 @@ import { InsightsSection } from "@/components/sections/insights";
 import { DataVizSection } from "@/components/sections/data-viz";
 import { StructuredData } from "@/components/structured-data";
 
+export const dynamic = 'force-dynamic';
+
 export default function Home() {
   return (
     <>

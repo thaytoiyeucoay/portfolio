@@ -12,6 +12,8 @@ import "./page.css";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Eye, EyeOff, List, ListX } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 type TocItem = { id: string; text: string; level: 2 | 3 };
 
 function slugify(text: string) {

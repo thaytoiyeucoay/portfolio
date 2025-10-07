@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+// Disable SSG for this interactive page to avoid prerender-time hook/context issues
+export const dynamic = 'force-dynamic';
 
 export default function CatDogPage() {
   const imgRef = useRef<HTMLImageElement | null>(null);

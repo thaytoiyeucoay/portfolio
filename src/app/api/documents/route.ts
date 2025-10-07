@@ -5,6 +5,8 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Document upload started...'); // Debug log
+    
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
     
@@ -15,6 +17,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('Processing files:', files.map(f => f.name)); // Debug log
+    
     const ragService = new RAGService();
     const vectorStore = ragService.getVectorStore();
     const processor = new DocumentProcessor();
@@ -23,6 +27,8 @@ export async function POST(request: NextRequest) {
     
     for (const file of files) {
       try {
+        console.log(`Processing file: ${file.name}`); // Debug log
+        
         // Xử lý file thành chunks
         const processedDoc = await processor.processFile(file);
         
@@ -35,7 +41,10 @@ export async function POST(request: NextRequest) {
           metadata: processedDoc.metadata,
           success: true
         });
+        
+        console.log(`File processed successfully: ${file.name}`); // Debug log
       } catch (error) {
+        console.error(`Error processing file ${file.name}:`, error); // Debug log
         results.push({
           filename: file.name,
           success: false,

@@ -16,6 +16,8 @@ import remarkGfm from "remark-gfm";
 import rehypePrism from "rehype-prism-plus";
 import Image from "next/image";
 
+export const dynamic = 'force-dynamic';
+
 export default function ChatbotRagPage() {
   // Chat state (UI-only)
   const [messages, setMessages] = useState<Array<{ id: string; role: "user" | "assistant"; content: string; citations?: Array<{ title: string; url?: string; snippet?: string }>; }>>([
@@ -682,7 +684,7 @@ export default function ChatbotRagPage() {
                 ))}
               </div>
             </CardContent>
-          </Card> */}
+          </Card> 
         </div>
       </div>
     </div>

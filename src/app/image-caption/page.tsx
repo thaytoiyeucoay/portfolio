@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Copy, Check, Upload, Image as ImgIcon, Tag, Sparkles, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+export const dynamic = 'force-dynamic';
+
 export default function ImageCaptionPage() {
   const [imgUrl, setImgUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("");

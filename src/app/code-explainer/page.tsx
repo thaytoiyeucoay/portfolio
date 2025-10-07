@@ -10,6 +10,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cn } from "@/lib/utils";
 import { Copy, Check, Lightbulb, Code2, Zap, FileCode2, Braces, TerminalSquare, Brackets, ArrowLeft } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 export default function CodeExplainerPage() {
   const [code, setCode] = useState("");
   const [language, setLanguage] = useState("");

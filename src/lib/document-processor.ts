@@ -1,6 +1,5 @@
 import { Document } from './vectorstore';
-import pdf from 'pdf-parse';
-import mammoth from 'mammoth';
+// Parsers are dynamically imported inside methods to avoid SSR build-time side effects
 
 export interface ProcessedDocument {
   chunks: Document[];
@@ -30,12 +29,15 @@ export class DocumentProcessor {
 
     if (fileType === 'application/pdf') {
       const buffer = await file.arrayBuffer();
-      const pdfData = await pdf(Buffer.from(buffer));
+      const pdfModule = await import('pdf-parse');
+      const pdfFn = (pdfModule as any).default || (pdfModule as any);
+      const pdfData = await pdfFn(Buffer.from(buffer));
       text = pdfData.text;
       totalPages = pdfData.numpages;
     } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
       const buffer = await file.arrayBuffer();
-      const result = await mammoth.extractRawText({ buffer: Buffer.from(buffer) });
+      const mammothModule = await import('mammoth');
+      const result = await (mammothModule as any).extractRawText({ buffer: Buffer.from(buffer) });
       text = result.value;
     } else if (fileType === 'text/plain' || fileType === 'text/markdown') {
       text = await file.text();

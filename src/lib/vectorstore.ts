@@ -25,8 +25,24 @@ export class VectorStore {
   private embedModel: string;
 
   constructor() {
-    // Tạo database trong thư mục .data
-    const dbPath = path.join(process.cwd(), '.data', 'rag.sqlite');
+    // Chọn thư mục ghi dữ liệu an toàn cho serverless (Vercel/Netlify -> /tmp),
+    // ưu tiên biến môi trường RAG_DATA_DIR nếu được cấu hình.
+    const isServerless = !!(process.env.VERCEL || process.env.NETLIFY || process.env.AWS_REGION);
+    const defaultLocalDir = path.join(process.cwd(), '.data');
+    const dataDir = process.env.RAG_DATA_DIR || (isServerless ? '/tmp' : defaultLocalDir);
+    
+    // Tạo thư mục .data nếu chưa tồn tại
+    try {
+      const fs = require('fs');
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+    } catch (error) {
+      console.warn('Could not create .data directory:', error);
+    }
+    
+    const dbPath = path.join(dataDir, 'rag.sqlite');
+    console.log('Database path:', dbPath); // Debug log
     this.db = new Database(dbPath);
     
     // Khởi tạo Gemini AI

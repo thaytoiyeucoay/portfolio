@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+// Disable SSG for this page to avoid prerender-time hook/context issues
+export const dynamic = 'force-dynamic';
 
 type Score = { label: string; score: number };
 

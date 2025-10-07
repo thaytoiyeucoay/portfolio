@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Copy, ArrowLeft, ExternalLink, ShieldAlert, ShieldCheck, Search } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 function verdictColor(v: string) {
   const s = v.toLowerCase();
   if (s.includes("đúng")) return "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
