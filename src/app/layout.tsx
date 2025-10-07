@@ -20,7 +20,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://portfolio-khanhduybui.vercel.app"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL?.startsWith('http') 
+      ? process.env.NEXT_PUBLIC_SITE_URL 
+      : process.env.NEXT_PUBLIC_SITE_URL 
+        ? `https://${process.env.NEXT_PUBLIC_SITE_URL}`
+        : "https://portfolio-khanhduybui.vercel.app"
+  ),
   title: {
     default: "Khánh Duy Bùi — AI Engineer & Full-Stack Developer Portfolio",
     template: "%s | Khánh Duy Bùi"
@@ -56,6 +62,7 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
     googleBot: {
+      index: true,
       follow: true,
       'max-video-preview': -1,
       'max-image-preview': 'large',
