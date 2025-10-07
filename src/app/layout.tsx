@@ -56,7 +56,6 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
     googleBot: {
-      index: true,
       follow: true,
       'max-video-preview': -1,
       'max-image-preview': 'large',
@@ -84,21 +83,18 @@ export const metadata: Metadata = {
     description:
       "AI Engineer & Full-Stack Developer. Student at HUST. Specialized in LLM, RAG, CV/NLP, React, PyTorch.",
     images: ["/opengraph-image.png"],
-    creator: "@khanhduybui"
+    creator: "@khanhduybui",
   },
   alternates: {
     canonical: "/",
   },
-  other: {
-    "google-site-verification": "your-google-verification-code"
+  verification: {
+    google: "googlecf0c54604a8f26c3",
   }
 };
-
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body
