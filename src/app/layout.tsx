@@ -96,7 +96,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   verification: {
-    google: "PJQB_KM8pGh-_1fb2rfH1oR",
+    google: "PJQB_KM8pGh-_1fb2rfH1oREBzQLU7KABzWDM-GrDIk",
   }
 };
 export default function RootLayout({
